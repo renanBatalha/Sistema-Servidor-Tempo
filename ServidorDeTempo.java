@@ -8,17 +8,16 @@ public class ServidorDeTempo {
 
     public static String obterTempoFormatado(){
 
-            // le o tempo atual da maquina servidora
+            // Le o tempo atual da maquina servidora
             LocalDateTime tempoAtual = LocalDateTime.now();
 
-            // formata a hora em 0-23: 0-59: 0-59
-            String tempo = tempoAtual.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+            // Retorna e formata a hora em 0-23: 0-59: 0-59
+            return tempoAtual.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
 
-            return tempo;
+        
     }
     
     public static void main(String[] args) {
-
 
         try (ServerSocket serverSocket = new ServerSocket(PORTA)) {
             System.out.println("Servidor iniciado na porta " + PORTA);
@@ -40,7 +39,10 @@ public class ServidorDeTempo {
                 PrintWriter resposta = new PrintWriter(output, true);
 
                 // Reposta para o cliente
-                resposta.println(tempoAtual);                            
+                resposta.println(tempoAtual);   
+
+                // Fecha a conexao do cliente
+                clienteSocket.close();                         
             }
         } catch (Exception e) {
             e.printStackTrace();

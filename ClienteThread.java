@@ -19,12 +19,16 @@ public class ClienteThread implements Runnable{
             saida = new PrintWriter(conexao.getOutputStream(), true);
 
             Menu();
+            String comando;
+            while((comando = entrada.readLine()) != null){
+                tratarComando(Integer.parseInt(comando));
+            }
         } catch(IOException e){
             System.err.println("Erro ao iniciar a conexão: " + e.getMessage());
         }
     }
 
-public void Menu() throws IOException{
+private void Menu() throws IOException{
         saida.println("=== SERVIDOR DE HORA ===");
         saida.println("Comandos disponíveis:");
         saida.println("1. HORA - Mostrar a hora atual");
@@ -34,39 +38,50 @@ public void Menu() throws IOException{
         saida.println("5. SAIR - Encerrar conexão");
         saida.println("Digite um comando:");
     }
-public void tratarComando(String comando) {
-        String[] partes = comando.split(" ");
-        String acao = partes[0].toUpperCase();
-
-        switch (acao) {
-            case "HORA":
+private void tratarComando(Integer comando) {
+        switch (comando) {
+            case 1:
                 enviarHoraAtual();
                 break;
-
-            case "AUTOMATICO":
-                if (partes.length > 1) {
-                    configurarAtualizacaoAutomatica(partes[1]);
-                } else {
-                    escritor.println("ERRO: Informe o intervalo em segundos (ex: AUTOMATICO 10)");
+            case 2:
+                try {
+                    String[] partes = entrada.readLine().split(" ");
+                    int segundos = Integer.parseInt(partes[1]);
+                    new Thread(() -> {
+                        while (true) {
+                            try {
+                                Thread.sleep(segundos * 1000);
+                                enviarHoraAtual();
+                            } catch (InterruptedException e) {
+                                break; // Interrompe o loop se a thread for interrompida
+                            }
+                        }
+                    }).start();
+                } catch (Exception e) {
+                    saida.println("Erro ao iniciar envio automático: " + e.getMessage());
                 }
                 break;
-
-            case "PARAR":
-                pararAtualizacao();
+            case 3:
+                // Implementar lógica para parar atualizações automáticas
+                saida.println("Atualizações automáticas paradas.");
                 break;
-
-            case "HISTORICO":
-                enviarHistorico();
+            case 4:
+                // Implementar lógica para mostrar histórico de ações
+                saida.println("Histórico de ações não implementado.");
                 break;
-
-            case "SAIR":
-                encerrarConexao();
+            case 5:
+                saida.println("Encerrando conexão...");
+                try {
+                    conexao.close();
+                } catch (IOException e) {
+                    System.err.println("Erro ao fechar conexão: " + e.getMessage());
+                }
                 break;
-
             default:
-                escritor.println("Comando inválido.");
+                saida.println("Comando inválido. Tente novamente.");
         }
     } 
+    
 private void enviarHoraAtual() {
         String horaAtual = java.time.LocalTime.now().toString();
         saida.println("Hora atual: " + horaAtual);
