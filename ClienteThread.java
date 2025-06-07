@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.util.List;
 
+// classe de manipulacao / handler
 public class ClienteThread implements Runnable{
     private Socket conexao; 
     private String clienteConectado;
@@ -30,61 +31,71 @@ public class ClienteThread implements Runnable{
 
 private void Menu() throws IOException{
         saida.println("=== SERVIDOR DE HORA ===");
-        saida.println("Comandos disponíveis:");
-        saida.println("1. HORA - Mostrar a hora atual");
-        saida.println("2. AUTOMATICO <segundos> - Enviar hora automaticamente a cada intervalo");
-        saida.println("3. PARAR - Parar atualizações automáticas");
-        saida.println("4. HISTORICO - Ver histórico de ações");
-        saida.println("5. SAIR - Encerrar conexão");
+        saida.println("Comandos disponiveis:");
+        saida.println("1.  - Mostrar a hora atual");
+        saida.println("2.  - Enviar hora automaticamente a cada intervalo");
+        saida.println("3.  - Ver historico de acoes");
+        saida.println("4.  - Encerrar conexao");
         saida.println("Digite um comando:");
     }
-private void tratarComando(Integer comando) {
+    
+private void tratarComando(Integer comando) throws IOException {
         switch (comando) {
             case 1:
                 enviarHoraAtual();
                 break;
             case 2:
-                try {
-                    String[] partes = entrada.readLine().split(" ");
-                    int segundos = Integer.parseInt(partes[1]);
-                    new Thread(() -> {
-                        while (true) {
-                            try {
-                                Thread.sleep(segundos * 1000);
-                                enviarHoraAtual();
-                            } catch (InterruptedException e) {
-                                break; // Interrompe o loop se a thread for interrompida
-                            }
-                        }
-                    }).start();
-                } catch (Exception e) {
-                    saida.println("Erro ao iniciar envio automático: " + e.getMessage());
-                }
+                Integer tempo;
+                System.out.println("Digite o intervalo de tempo que deseja receber atualizacoes (milisegundos): ");
+                tempo =  Integer.parseInt(entrada.readLine());                
+
                 break;
             case 3:
-                // Implementar lógica para parar atualizações automáticas
-                saida.println("Atualizações automáticas paradas.");
-                break;
-            case 4:
                 // Implementar lógica para mostrar histórico de ações
                 saida.println("Histórico de ações não implementado.");
                 break;
-            case 5:
+            case 4:
                 saida.println("Encerrando conexão...");
                 try {
                     conexao.close();
                 } catch (IOException e) {
-                    System.err.println("Erro ao fechar conexão: " + e.getMessage());
+                    System.err.println("Erro ao fechar conexao: " + e.getMessage());
                 }
                 break;
             default:
-                saida.println("Comando inválido. Tente novamente.");
+                saida.println("Comando invalido. Tente novamente.");
         }
     } 
     
 private void enviarHoraAtual() {
-        String horaAtual = java.time.LocalTime.now().toString();
+        String horaAtual = ServidorDeTempo.obterTempoAtual();
         saida.println("Hora atual: " + horaAtual);
+    }
+private void AtualizarTempo(Integer tempo){
+    try{
+        if(tempo < 1){
+            saida.println("ERRO: o tempo deve ser maior que zero");
+            return;
+        }
+        
+    } catch(NumberFormatException e){
+        saida.println("ERRO: numero invalido");
+    }
+}
+private void encerrarConexao() {
+        try {
+            if(entrada != null) {
+                entrada.close();
+            }
+            if(saida != null) {
+                saida.close();
+            }
+            if(conexao != null && !conexao.isClosed()) {
+                conexao.close();
+            }
+        } catch (IOException e) {
+            System.err.println("Erro ao encerrar a conexão: " + e.getMessage());
+        }
     }
 }
 
