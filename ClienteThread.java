@@ -18,7 +18,8 @@ public class ClienteThread implements Runnable{
         try{
             entrada = new BufferedReader(new InputStreamReader(conexao.getInputStream()));
             saida = new PrintWriter(conexao.getOutputStream(), true);
-
+            ServidorDeTempo.adicionarCliente(clienteConectado, saida);
+            ServidorDeTempo.registrarAcao("Cliente conectado: " + clienteConectado);
             Menu();
             String comando;
             while((comando = entrada.readLine()) != null){
@@ -36,7 +37,7 @@ private void Menu() throws IOException{
         saida.println("2.  - Enviar hora automaticamente a cada intervalo");
         saida.println("3.  - Ver historico de acoes");
         saida.println("4.  - Encerrar conexao");
-        saida.println("Digite um comando:");
+        saida.println("Digite um comando: ");
     }
     
 private void tratarComando(Integer comando) throws IOException {
@@ -126,24 +127,22 @@ public String ajustarHora(String horaRecebida, long atraso) {
 
         return String.format("%02d:%02d:%02d", horas, minutos, segundos);
     }
-
-}
-
-private void enviarHis
-private void encerrarConexao() {
-        try {
-            if(entrada != null) {
-                entrada.close();
+    
+    private void encerrarConexao() {
+            try {
+                if(entrada != null) {
+                    entrada.close();
+                }
+                if(saida != null) {
+                    saida.close();
+                }
+                if(conexao != null && !conexao.isClosed()) {
+                    conexao.close();
+                }
+            } catch (IOException e) {
+                System.err.println("Erro ao encerrar a conexão: " + e.getMessage());
             }
-            if(saida != null) {
-                saida.close();
-            }
-            if(conexao != null && !conexao.isClosed()) {
-                conexao.close();
-            }
-        } catch (IOException e) {
-            System.err.println("Erro ao encerrar a conexão: " + e.getMessage());
         }
-    }
 }
+
 
