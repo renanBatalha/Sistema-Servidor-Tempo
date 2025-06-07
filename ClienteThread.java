@@ -47,12 +47,27 @@ private void tratarComando(Integer comando) throws IOException {
             case 2:
                 Integer tempo;
                 System.out.println("Digite o intervalo de tempo que deseja receber atualizacoes (milisegundos): ");
-                tempo =  Integer.parseInt(entrada.readLine());                
+                tempo =  Integer.parseInt(entrada.readLine());
+
+                // tempo da requisicao de atualizacao
+                long tempoDeEnvio = System.currentTimeMillis();
+
+                ServidorDeTempo.definirAtualizacaoAutomatica(tempo, saida);
+                
+                String horaRecebida = entrada.readLine();
+
+                long tempoDeRecebimento = System.currentTimeMillis();
+
+                long atraso = tempoDeRecebimento - tempoDeEnvio;
+
+                String horaCorrigida = ajustarHora(horaRecebida, atraso);
+
+                System.out.println("Hora atualizada: " + horaCorrigida);                
 
                 break;
             case 3:
                 // Implementar lógica para mostrar histórico de ações
-                saida.println("Histórico de ações não implementado.");
+                saida.println("Historico de acoes");
                 break;
             case 4:
                 saida.println("Encerrando conexão...");
@@ -82,6 +97,39 @@ private void AtualizarTempo(Integer tempo){
         saida.println("ERRO: numero invalido");
     }
 }
+
+public String ajustarHora(String horaRecebida, long atraso) {
+        // Ajusta a hora recebida com base no atraso
+        String[] partes = horaRecebida.split(":");
+        int horas = Integer.parseInt(partes[0]);
+        int minutos = Integer.parseInt(partes[1]);
+        int segundos = Integer.parseInt(partes[2]);
+
+        // Converte o atraso de milissegundos para segundos
+        long atrasoEmSegundos = atraso / 1000;
+
+        // Ajusta os segundos
+        segundos += atrasoEmSegundos;
+
+        // Corrige os minutos e horas se necessário
+        if (segundos >= 60) {
+            minutos += segundos / 60;
+            segundos %= 60;
+        }
+        if (minutos >= 60) {
+            horas += minutos / 60;
+            minutos %= 60;
+        }
+        if (horas >= 24) {
+            horas %= 24;
+        }
+
+        return String.format("%02d:%02d:%02d", horas, minutos, segundos);
+    }
+
+}
+
+private void enviarHis
 private void encerrarConexao() {
         try {
             if(entrada != null) {
