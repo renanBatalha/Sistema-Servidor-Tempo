@@ -13,18 +13,37 @@ public class ClienteThread implements Runnable{
         this.conexao = conexao;
         this.clienteConectado = conexao.getRemoteSocketAddress().toString();
     }
+
+    /*
+    Pense no servidor como alguém que envia cartas.
+    Ele escreve o menu e coloca no envelope (PrintWriter) e envia.
+
+    O cliente recebe a carta (via InputStream) mas:
+
+    Se ele não abrir e ler a carta, ele nunca verá o conteúdo.
+
+    Seu cliente atual não lê nada. Ele só se conecta e encerra.    
+    */ 
+
     @Override
     public void run(){
         try{
             entrada = new BufferedReader(new InputStreamReader(conexao.getInputStream()));
             saida = new PrintWriter(conexao.getOutputStream(), true);
+
             ServidorDeTempo.adicionarCliente(clienteConectado, saida);
             ServidorDeTempo.registrarAcao("Cliente conectado: " + clienteConectado);
-            Menu();
             String comando;
-            while((comando = entrada.readLine()) != null){
+
+            do{
+                // Exibe o menu e aguarda o comando do cliente
+                Menu();
+                comando = entrada.readLine();
                 tratarComando(Integer.parseInt(comando));
-            }
+            }while(comando != null && !comando.equals("4"));
+            
+            ServidorDeTempo.registrarAcao("Cliente desconectado: " + clienteConectado);
+
         } catch(IOException e){
             System.err.println("Erro ao iniciar a conexão: " + e.getMessage());
         }
@@ -44,10 +63,12 @@ private void tratarComando(Integer comando) throws IOException {
         switch (comando) {
             case 1:
                 enviarHoraAtual();
+                ServidorDeTempo.registrarAcao("Hora atual solicitada por " + clienteConectado);
                 break;
             case 2:
                 Integer tempo;
-                System.out.println("Digite o intervalo de tempo que deseja receber atualizacoes (milisegundos): ");
+                saida.println("Digite o intervalo de tempo que deseja receber atualizacoes (milisegundos): ");
+                
                 tempo =  Integer.parseInt(entrada.readLine());
 
                 // tempo da requisicao de atualizacao
@@ -67,8 +88,10 @@ private void tratarComando(Integer comando) throws IOException {
 
                 break;
             case 3:
-                // Implementar lógica para mostrar histórico de ações
-                saida.println("Historico de acoes");
+                List<String> historico = new ServidorDeTempo().obterHistorico();
+                for (String acao : historico) {
+                    saida.println(acao);
+                }
                 break;
             case 4:
                 saida.println("Encerrando conexão...");
@@ -87,6 +110,7 @@ private void enviarHoraAtual() {
         String horaAtual = ServidorDeTempo.obterTempoAtual();
         saida.println("Hora atual: " + horaAtual);
     }
+
 private void AtualizarTempo(Integer tempo){
     try{
         if(tempo < 1){

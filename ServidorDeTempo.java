@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -72,18 +73,18 @@ public class ServidorDeTempo {
         
         try  {
             servidor = new ServerSocket(PORTA);
+            poolConexoes = Executors.newFixedThreadPool(10);
+
             System.out.println("Servidor iniciado na porta " + PORTA);
-            while (true) {
 
-                // Recebe a conexao do cliente
-                // O servidor de tempo so avanca apos conexao
-                registrarAcao("Servidor iniciado na porta " + PORTA);
-                while(true){
+            // Recebe a conexao do cliente
+            // O servidor de tempo so avanca apos conexao
+            registrarAcao("Servidor iniciado na porta " + PORTA);
+            while(true){
 
-                Socket clienteSocket = servidor.accept();
-                poolConexoes.execute(new ClienteThread(clienteSocket));
-                
-                }
+            Socket clienteSocket = servidor.accept();
+            poolConexoes.execute(new ClienteThread(clienteSocket));
+            
             }
         } catch (IOException e) {
             System.err.println("Erro no servidor: " + e.getMessage());
