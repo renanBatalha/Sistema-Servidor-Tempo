@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.time.LocalDate;
 import java.util.List;
 
 // classe de manipulacao / handler
@@ -8,22 +9,33 @@ public class ClienteThread implements Runnable{
     private String clienteConectado;
     private BufferedReader entrada;
     private PrintWriter saida;
+    private boolean atualizacaoAtiva = true;
 
     ClienteThread(Socket conexao) {
         this.conexao = conexao;
         this.clienteConectado = conexao.getRemoteSocketAddress().toString();
     }
 
-    /*
-    Pense no servidor como alguém que envia cartas.
-    Ele escreve o menu e coloca no envelope (PrintWriter) e envia.
-
-    O cliente recebe a carta (via InputStream) mas:
-
-    Se ele não abrir e ler a carta, ele nunca verá o conteúdo.
-
-    Seu cliente atual não lê nada. Ele só se conecta e encerra.    
-    */ 
+    public void enviarTempoPorIntervalo(int intervalo, PrintWriter saida, BufferedReader entrada) {
+        this.atualizacaoAtiva = true;
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss");
+                while(atualizacaoAtiva){
+                    try {
+                        Thread.sleep(intervalo);
+                        String horaAtual = java.time.LocalTime.now().format(formatter);
+                        saida.println("Hora atual: " + horaAtual);
+                    } catch (InterruptedException e) {
+                        System.err.println("Erro ao enviar hora automaticamente: " + e.getMessage());
+                        break;
+                    }
+                }
+            }
+        });
+        t.start();
+    }
 
     @Override
     public void run(){
@@ -71,21 +83,17 @@ private void tratarComando(Integer comando) throws IOException {
                 
                 tempo =  Integer.parseInt(entrada.readLine());
 
-                // tempo da requisicao de atualizacao
-                long tempoDeEnvio = System.currentTimeMillis();
+                enviarTempoPorIntervalo(tempo, saida, entrada);
 
-                ServidorDeTempo.definirAtualizacaoAutomatica(tempo, saida);
+                String resposta;
+                while ((resposta = entrada.readLine()) != null) {
+                    if (resposta.trim().equalsIgnoreCase("stop")) {
+                        saida.println("Atualizacao automatica encerrada...");
+                        this.atualizacaoAtiva = false;
+                        break;
+                    }
+                }
                 
-                String horaRecebida = entrada.readLine();
-
-                long tempoDeRecebimento = System.currentTimeMillis();
-
-                long atraso = tempoDeRecebimento - tempoDeEnvio;
-
-                String horaCorrigida = ajustarHora(horaRecebida, atraso);
-
-                System.out.println("Hora atualizada: " + horaCorrigida);                
-
                 break;
             case 3:
                 List<String> historico = new ServidorDeTempo().obterHistorico();
@@ -121,37 +129,7 @@ private void AtualizarTempo(Integer tempo){
     } catch(NumberFormatException e){
         saida.println("ERRO: numero invalido");
     }
-}
-
-public String ajustarHora(String horaRecebida, long atraso) {
-        // Ajusta a hora recebida com base no atraso
-        String[] partes = horaRecebida.split(":");
-        int horas = Integer.parseInt(partes[0]);
-        int minutos = Integer.parseInt(partes[1]);
-        int segundos = Integer.parseInt(partes[2]);
-
-        // Converte o atraso de milissegundos para segundos
-        long atrasoEmSegundos = atraso / 1000;
-
-        // Ajusta os segundos
-        segundos += atrasoEmSegundos;
-
-        // Corrige os minutos e horas se necessário
-        if (segundos >= 60) {
-            minutos += segundos / 60;
-            segundos %= 60;
-        }
-        if (minutos >= 60) {
-            horas += minutos / 60;
-            minutos %= 60;
-        }
-        if (horas >= 24) {
-            horas %= 24;
-        }
-
-        return String.format("%02d:%02d:%02d", horas, minutos, segundos);
-    }
-    
+}    
     private void encerrarConexao() {
             try {
                 if(entrada != null) {
@@ -166,7 +144,7 @@ public String ajustarHora(String horaRecebida, long atraso) {
             } catch (IOException e) {
                 System.err.println("Erro ao encerrar a conexão: " + e.getMessage());
             }
-        }
+    }
 }
 
 
