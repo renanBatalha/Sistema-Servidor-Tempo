@@ -43,7 +43,7 @@ public class ClienteThread implements Runnable{
             entrada = new BufferedReader(new InputStreamReader(conexao.getInputStream()));
             saida = new PrintWriter(conexao.getOutputStream(), true);
 
-            ServidorDeTempo.adicionarCliente(clienteConectado, saida);
+            ServidorDeTempo.adicionarCliente(clienteConectado, saida, conexao);
             ServidorDeTempo.registrarAcao("Cliente conectado: " + clienteConectado);
             String comando;
 

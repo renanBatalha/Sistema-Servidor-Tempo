@@ -4,6 +4,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,7 +22,9 @@ public class ServidorDeTempo {
     private static final List<String> historicoDeAcoes = Collections.synchronizedList(new ArrayList<>());
     // É um mapa que armazena os clientes conectados.
     // A chave é o ID do cliente (uma String) e o valor é um PrintWriter que permite enviar mensagens para esse cliente.
-    private static final Map<String, PrintWriter> clientesConectados = new ConcurrentHashMap<>();
+    private static final Map<String, Socket> socketsClientes = new ConcurrentHashMap<>();
+
+    private static final Map<String, PrintWriter> clientesConectados = new ConcurrentHashMap<>();    
 
     private static volatile boolean flag = true;
 
@@ -82,8 +85,11 @@ public class ServidorDeTempo {
                 case 3:
                     break;
                 case 4:
+                    desconectarTodosOsClientes();
+                    System.out.println("Todos os clientes foram desconectados...");
                     break;
                 case 5:
+                    encerrarServidor();
                     break;
             }
 
@@ -124,8 +130,38 @@ public class ServidorDeTempo {
         return new ArrayList<>(historicoDeAcoes);
     }
 
-     public static void adicionarCliente(String id, PrintWriter escritor) {
+    public static void adicionarCliente(String id, PrintWriter escritor, Socket sockets) {
         clientesConectados.put(id, escritor);
+        socketsClientes.put(id, sockets);
+    }
+
+    public static void desconectarTodosOsClientes(){
+        PrintWriter saidaCliente;
+        Socket socketCliente;
+
+        for (Map.Entry<String, PrintWriter> entry : clientesConectados.entrySet()) {
+            saidaCliente = entry.getValue();
+            String id = entry.getKey();
+
+            socketCliente = socketsClientes.get(id);
+
+            try{
+
+                if(saidaCliente != null){
+                    saidaCliente.println("Voce foi desconectado pelo servidor.");
+                    saidaCliente.close();
+                }
+
+                if(socketCliente != null && !socketCliente.isClosed()){
+                    socketCliente.close();
+                    System.out.println("Soquete do cliente " + id + " fechado");
+                }
+
+            }catch(IOException e){
+                e.getMessage();
+            }
+
+        }
     }
 
     private static void encerrarServidor() {
@@ -163,7 +199,6 @@ public class ServidorDeTempo {
             Socket clienteSocket = servidor.accept();
             poolConexoes.execute(new ClienteThread(clienteSocket));
 
-            
             }
         } catch (IOException e) {
             System.err.println("Erro no servidor: " + e.getMessage());
