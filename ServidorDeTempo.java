@@ -2,6 +2,7 @@ import java.net.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -14,13 +15,80 @@ import java.io.PrintWriter;
 public class ServidorDeTempo {
     private static final int PORTA = 8080;
     private static ServerSocket servidor;
-    // Controla a execução do código para cada cliente.
+    // Controla a execução do codigo para cada cliente.
     // É um gerenciador de threads. Ele cria e controla um "pool" (conjunto) de threads para lidar com múltiplos clientes ao mesmo tempo
     private static ExecutorService poolConexoes;
     private static final List<String> historicoDeAcoes = Collections.synchronizedList(new ArrayList<>());
     // É um mapa que armazena os clientes conectados.
     // A chave é o ID do cliente (uma String) e o valor é um PrintWriter que permite enviar mensagens para esse cliente.
     private static final Map<String, PrintWriter> clientesConectados = new ConcurrentHashMap<>();
+
+    private static volatile boolean flag = true;
+
+    private static void mostrarHoraAutomaticaServidor(){
+        String resposta;
+        do{ 
+            Thread tempoAtual = new Thread( new Runnable(){
+                @Override
+                public void run(){
+                    while(flag) {
+                        System.out.println(obterTempoAtual()); 
+                        try{
+                            Thread.sleep(1000);
+                        }
+                        catch(Exception e){
+                            e.printStackTrace();
+                        }
+                    }        
+                }
+            });
+            tempoAtual.start();
+
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Digite 'p' para parar");
+            resposta = scanner.nextLine();
+
+        }while(!resposta.equals("p"));
+        flag = false;
+        
+    }
+
+    private static void Menu(){
+        System.out.println("=== SERVIDOR DE HORA ===");
+        System.out.println("01 - Mostrar Hora Atual Automatica");
+        System.out.println("02 - Mostrar Numero de Clientes Conectados");
+        System.out.println("03 - Mostrar Log de Acoes");
+        System.out.println("04 - Encerrar Todas as Conexoes");
+        System.out.println("05 - Derrubar Servidor");        
+    }
+
+    private static void opcaoServidor(){
+        Scanner scanner = new Scanner(System.in);
+        int opcao;
+
+        do{
+            Menu();
+            String resposta = scanner.nextLine();
+            
+            opcao = Integer.parseInt(resposta);
+            
+
+            switch(opcao){
+                case 1:
+                    mostrarHoraAutomaticaServidor();
+                    break;
+                case 2:
+                    break;
+                case 3:
+                    break;
+                case 4:
+                    break;
+                case 5:
+                    break;
+            }
+
+        }while(opcao != 5);
+    }
 
 
     public static String obterTempoAtual(){
@@ -80,10 +148,21 @@ public class ServidorDeTempo {
             // Recebe a conexao do cliente
             // O servidor de tempo so avanca apos conexao
             registrarAcao("Servidor iniciado na porta " + PORTA);
+
+            Thread menuThread = new Thread( new Runnable(){
+                @Override
+                public void run(){
+                    opcaoServidor();
+                }
+            });
+            menuThread.start();
+
             while(true){
+
 
             Socket clienteSocket = servidor.accept();
             poolConexoes.execute(new ClienteThread(clienteSocket));
+
             
             }
         } catch (IOException e) {
@@ -94,4 +173,5 @@ public class ServidorDeTempo {
             System.out.println("Servidor encerrado.");
         }
     }
+
 }
