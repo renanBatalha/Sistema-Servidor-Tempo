@@ -56,6 +56,69 @@ public class ServidorDeTempo {
         
     }
 
+    private static void mostrarLogPorCliente() {
+    System.out.println("=== LOG DE AÇÕES POR CLIENTE ===");
+
+    // Mapa: chave = ID do cliente, valor = lista de ações
+    Map<String, List<String>> logPorCliente = new HashMap<>();
+
+    synchronized (historicoDeAcoes) {
+        for (String entrada : historicoDeAcoes) {
+            // Verifica se a entrada contém "Cliente: [id]"
+            int indice = entrada.indexOf("Cliente ");
+            if (indice != -1) {
+                String parteCliente = entrada.substring(indice);
+                String[] partes = parteCliente.split(" ");
+                if (partes.length >= 2) {
+                    String idCliente = partes[1];
+
+                    logPorCliente.putIfAbsent(idCliente, new ArrayList<>());
+                    logPorCliente.get(idCliente).add(entrada);
+                }
+            }
+        }
+    }
+
+    if (logPorCliente.isEmpty()) {
+        System.out.println("Nenhum log associado a clientes encontrado.");
+    } else {
+        for (Map.Entry<String, List<String>> entrada : logPorCliente.entrySet()) {
+            System.out.println("Cliente com ID: " + entrada.getKey());
+            for (String acao : entrada.getValue()) {
+                System.out.println("  - " + acao);
+            }
+            System.out.println("--------------------------------");
+        }
+    }
+
+    System.out.println("================================");
+    System.out.println("Pressione Enter para continuar...");
+    Scanner scanner = new Scanner(System.in);
+    scanner.nextLine();
+}
+
+
+    private static void mostrarClientesConectados() {
+    int numeroClientes = clientesConectados.size();
+    
+    System.out.println("=== CLIENTES CONECTADOS ===");
+    System.out.println("Número total de clientes conectados: " + numeroClientes);
+    
+    if (numeroClientes > 0) {
+        System.out.println("IDs dos clientes conectados:");
+        for (String id : clientesConectados.keySet()) {
+            System.out.println("- Cliente: " + id);
+        }
+    } else {
+        System.out.println("Nenhum cliente conectado no momento.");
+    }
+    
+    System.out.println("========================");
+    System.out.println("Pressione Enter para continuar...");
+    Scanner scanner = new Scanner(System.in);
+    scanner.nextLine(); 
+    }
+
     private static void Menu(){
         System.out.println("=== SERVIDOR DE HORA ===");
         System.out.println("01 - Mostrar Hora Atual Automatica");
@@ -81,8 +144,10 @@ public class ServidorDeTempo {
                     mostrarHoraAutomaticaServidor();
                     break;
                 case 2:
+                    mostrarClientesConectados();
                     break;
                 case 3:
+                    mostrarLogPorCliente();
                     break;
                 case 4:
                     desconectarTodosOsClientes();

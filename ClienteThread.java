@@ -1,6 +1,5 @@
 import java.io.*;
 import java.net.*;
-import java.time.LocalDate;
 import java.util.List;
 
 // classe de manipulacao / handler
@@ -75,12 +74,12 @@ private void tratarComando(Integer comando) throws IOException {
         switch (comando) {
             case 1:
                 enviarHoraAtual();
-                ServidorDeTempo.registrarAcao("Hora atual solicitada por " + clienteConectado);
+                ServidorDeTempo.registrarAcao("Cliente " + clienteConectado + " solicitou a hora atual");
                 break;
             case 2:
                 Integer tempo;
                 saida.println("Digite o intervalo de tempo que deseja receber atualizacoes (milisegundos): ");
-                
+                ServidorDeTempo.registrarAcao("Cliente " + clienteConectado + " solicitou atualizacao automatica de tempo");
                 tempo =  Integer.parseInt(entrada.readLine());
 
                 enviarTempoPorIntervalo(tempo, saida, entrada);
@@ -103,6 +102,7 @@ private void tratarComando(Integer comando) throws IOException {
                 break;
             case 4:
                 saida.println("Encerrando conexão...");
+                ServidorDeTempo.registrarAcao("Cliente " + clienteConectado + " encerrou a conexao");
                 try {
                     conexao.close();
                 } catch (IOException e) {
