@@ -101,28 +101,21 @@ private void tratarComando(Integer comando) throws IOException {
                 } catch (IOException e) {
                     System.err.println("Erro ao fechar conexao: " + e.getMessage());
                 }
+                finally {
+                    encerrarConexao();
+                }
                 break;
             default:
                 saida.println("Comando invalido. Tente novamente.");
         }
+
     } 
     
 private void enviarHoraAtual() {
         String horaAtual = ServidorDeTempo.obterTempoAtual();
         saida.println("Hora atual: " + horaAtual);
     }
-
-private void AtualizarTempo(Integer tempo){
-    try{
-        if(tempo < 1){
-            saida.println("ERRO: o tempo deve ser maior que zero");
-            return;
-        }
-        
-    } catch(NumberFormatException e){
-        saida.println("ERRO: numero invalido");
-    }
-}    
+   
     private void encerrarConexao() {
             try {
                 if(entrada != null) {

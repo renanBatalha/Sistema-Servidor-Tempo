@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 
 
 public class Cliente{
-    private static final String SERVER_HOST = "localhost";
+    private static final String SERVER_HOST = "179.106.195.1";
     private static final int SERVER_PORT = 8080;
     private static volatile boolean atualizacaoAtiva = true;
 
@@ -39,7 +39,6 @@ public class Cliente{
 
         return String.format("%02d:%02d:%02d", horas, minutos, segundos);
     }
-
 
     public static void main(String[] args) {
         System.out.println("=== CLIENTE SERVIDOR DE TEOMPO ===");
