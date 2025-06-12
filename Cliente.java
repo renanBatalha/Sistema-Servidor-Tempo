@@ -10,6 +10,7 @@ public class Cliente{
     private static final String SERVER_HOST = "179.106.195.1";
     private static final int SERVER_PORT = 8080;
     private static volatile boolean atualizacaoAtiva = true;
+    private static volatile long tempoAtrasoServidor = 0; // Armazena o tempo do servidor
 
     public static String ajustarHora(String horaRecebida, long atraso) {
         // Ajusta a hora recebida com base no atraso
@@ -54,16 +55,13 @@ public class Cliente{
 
             String linha;
             while ((linha = entrada.readLine()) != null) {
+                // long tempoAtrasoServidor; // Removido daqui
                 
-                
-                if (linha.startsWith("Tempo Anterior:")) {
-                    long tempoAnterior = Long.parseLong(linha.split(": ")[1]);
-                    continue;
-                    
+                if(linha.contains("Tempo Anterior:")){
+                    tempoAtrasoServidor = Long.parseLong(linha.split(":")[1].trim());
                 }
                 else{
                     System.out.println(linha); // Mostra o que o servidor envia (como o menu)
-                    
                 }
 
                 if (linha.contains("Digite um Comando")) {
@@ -90,10 +88,13 @@ public class Cliente{
 
                                 if(horaRecebida.startsWith("Hora atual: ")) {
                                     horaRecebida = horaRecebida.substring(12); // Remove o prefixo "Hora atual: "
+                                    long tempoAtualCliente = System.currentTimeMillis();
+                                    long atraso = tempoAtualCliente - tempoAtrasoServidor;
+                                    String horaCorrigida = Cliente.ajustarHora(horaRecebida, atraso);
+                                    System.out.println("Hora atualizada: " + horaCorrigida);
+                                } else {
+                                    System.out.println("Hora atualizada: " + horaRecebida);
                                 }
-                               // Integer atraso = intervalo; // ou medir tempo real
-                                //String horaCorrigida = Cliente.ajustarHora(horaRecebida, atraso);
-                                System.out.println("Hora atualizada: " + horaRecebida);
                             }
                         } catch (IOException e) {
                             System.err.println("Erro na atualizacao automatica: " + e.getMessage());
