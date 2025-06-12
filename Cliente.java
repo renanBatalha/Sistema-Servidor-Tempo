@@ -54,7 +54,17 @@ public class Cliente{
 
             String linha;
             while ((linha = entrada.readLine()) != null) {
-                System.out.println(linha); // Mostra o que o servidor envia (como o menu)
+                
+                
+                if (linha.startsWith("Tempo Anterior:")) {
+                    long tempoAnterior = Long.parseLong(linha.split(": ")[1]);
+                    continue;
+                    
+                }
+                else{
+                    System.out.println(linha); // Mostra o que o servidor envia (como o menu)
+                    
+                }
 
                 if (linha.contains("Digite um Comando")) {
                     System.out.print("> ");
@@ -81,9 +91,9 @@ public class Cliente{
                                 if(horaRecebida.startsWith("Hora atual: ")) {
                                     horaRecebida = horaRecebida.substring(12); // Remove o prefixo "Hora atual: "
                                 }
-                                Integer atraso = intervalo; // ou medir tempo real
-                                String horaCorrigida = Cliente.ajustarHora(horaRecebida, atraso);
-                                System.out.println("Hora atualizada: " + horaCorrigida);
+                               // Integer atraso = intervalo; // ou medir tempo real
+                                //String horaCorrigida = Cliente.ajustarHora(horaRecebida, atraso);
+                                System.out.println("Hora atualizada: " + horaRecebida);
                             }
                         } catch (IOException e) {
                             System.err.println("Erro na atualizacao automatica: " + e.getMessage());
