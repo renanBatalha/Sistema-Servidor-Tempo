@@ -56,18 +56,17 @@ public class ClienteThread implements Runnable{
             ServidorDeTempo.registrarAcao("Cliente desconectado: " + clienteConectado);
 
         } catch(IOException e){
-            System.err.println("Erro ao iniciar a conexão: " + e.getMessage());
+            System.err.println("Erro ao iniciar a conexao: " + e.getMessage());
         }
     }
 
 private void Menu() throws IOException{
         saida.println("=== SERVIDOR DE HORA ===");
         saida.println("Comandos disponiveis:");
-        saida.println("1.  - Mostrar a hora atual");
-        saida.println("2.  - Enviar hora automaticamente a cada intervalo");
-        saida.println("3.  - Ver historico de acoes");
-        saida.println("4.  - Encerrar conexao");
-        saida.println("Digite um comando: ");
+        saida.println("1.  - Mostrar a Hora Atual");
+        saida.println("2.  - Enviar Hora Automaticamente a Cada Intervalo");
+        saida.println("3.  - Encerrar Conexao");
+        saida.println("Digite um Comando: ");
     }
     
 private void tratarComando(Integer comando) throws IOException {
@@ -79,32 +78,26 @@ private void tratarComando(Integer comando) throws IOException {
             case 2:
                 Integer tempo;
                 saida.println("Digite o intervalo de tempo que deseja receber atualizacoes (milisegundos): ");
-                ServidorDeTempo.registrarAcao("Cliente " + clienteConectado + " solicitou atualizacao automatica de tempo");
                 tempo =  Integer.parseInt(entrada.readLine());
+                ServidorDeTempo.registrarAcao("Cliente " + clienteConectado + " solicitou atualizacao automatica de tempo: " + tempo + "ms");
 
                 enviarTempoPorIntervalo(tempo, saida, entrada);
 
                 String resposta;
                 while ((resposta = entrada.readLine()) != null) {
-                    if (resposta.trim().equalsIgnoreCase("stop")) {
-                        saida.println("Atualizacao automatica encerrada...");
+                    if (resposta.trim().equalsIgnoreCase("p")) {
+                        //saida.println("Atualizacao automatica encerrada...");
                         this.atualizacaoAtiva = false;
                         break;
                     }
                 }
-                
                 break;
             case 3:
-                List<String> historico = new ServidorDeTempo().obterHistorico();
-                for (String acao : historico) {
-                    saida.println(acao);
-                }
-                break;
-            case 4:
-                saida.println("Encerrando conexão...");
+                saida.println("Encerrando conexao...");
                 ServidorDeTempo.registrarAcao("Cliente " + clienteConectado + " encerrou a conexao");
                 try {
                     conexao.close();
+                    System.out.println("O cliente " + clienteConectado + " se desconectou.");
                 } catch (IOException e) {
                     System.err.println("Erro ao fechar conexao: " + e.getMessage());
                 }
@@ -142,7 +135,7 @@ private void AtualizarTempo(Integer tempo){
                     conexao.close();
                 }
             } catch (IOException e) {
-                System.err.println("Erro ao encerrar a conexão: " + e.getMessage());
+                System.err.println("Erro ao encerrar a conexao: " + e.getMessage());
             }
     }
 }

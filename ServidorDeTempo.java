@@ -57,7 +57,7 @@ public class ServidorDeTempo {
     }
 
     private static void mostrarLogPorCliente() {
-    System.out.println("=== LOG DE AÇÕES POR CLIENTE ===");
+    System.out.println("=== LOG DE ACOES POR CLIENTE ===");
 
     // Mapa: chave = ID do cliente, valor = lista de ações
     Map<String, List<String>> logPorCliente = new HashMap<>();
@@ -102,7 +102,7 @@ public class ServidorDeTempo {
     int numeroClientes = clientesConectados.size();
     
     System.out.println("=== CLIENTES CONECTADOS ===");
-    System.out.println("Número total de clientes conectados: " + numeroClientes);
+    System.out.println("Numero total de clientes conectados: " + numeroClientes);
     
     if (numeroClientes > 0) {
         System.out.println("IDs dos clientes conectados:");
@@ -231,11 +231,12 @@ public class ServidorDeTempo {
 
     private static void encerrarServidor() {
         try {
+            desconectarTodosOsClientes(); 
             if (servidor != null) servidor.close();
             if (poolConexoes != null) poolConexoes.shutdown();
         } catch (IOException e) {
-            System.err.println("Erro ao encerrar servidor: " + e.getMessage());
-        }
+        System.err.println("Erro ao encerrar servidor: " + e.getMessage());
+    }
     }
     
     public static void main(String[] args) {

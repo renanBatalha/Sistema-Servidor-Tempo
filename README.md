@@ -25,3 +25,5 @@ O sistema é composto por duas partes:
 ## 🕹 Como Executar
 
 ### 1. Compile os arquivos Java:
+java .\ServidorDeTempo.java
+java .\Cliente.java

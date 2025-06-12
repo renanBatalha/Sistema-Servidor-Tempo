@@ -57,11 +57,12 @@ public class Cliente{
             while ((linha = entrada.readLine()) != null) {
                 System.out.println(linha); // Mostra o que o servidor envia (como o menu)
 
-                if (linha.contains("Digite um comando")) {
+                if (linha.contains("Digite um Comando")) {
                     System.out.print("> ");
                     String comando = teclado.nextLine();
                     saida.println(comando);
                 }
+
                 if (linha.contains("Digite o intervalo")) {
                     System.out.print("> ");
                     String intervaloStr = teclado.nextLine();
@@ -75,6 +76,9 @@ public class Cliente{
                             while (atualizacaoAtiva) {
                                 String horaRecebida = entrada.readLine();
                                 if (horaRecebida == null) break;
+
+                                if (!atualizacaoAtiva) break;
+
                                 if(horaRecebida.startsWith("Hora atual: ")) {
                                     horaRecebida = horaRecebida.substring(12); // Remove o prefixo "Hora atual: "
                                 }
@@ -83,21 +87,23 @@ public class Cliente{
                                 System.out.println("Hora atualizada: " + horaCorrigida);
                             }
                         } catch (IOException e) {
-                            System.err.println("Erro na atualização automatica: " + e.getMessage());
+                            System.err.println("Erro na atualizacao automatica: " + e.getMessage());
                         }
                     });
                     threadAtualizacao.start();
 
-                    // Espera o usuario digitar algo para parar
-                    System.out.println("Digite stop para parar a atualizacao automatica...");
-                    String comandoParar = teclado.nextLine(); // Espera Stop
-
-                    if(comandoParar.trim().equalsIgnoreCase("stop")) {
-                        saida.println("stop");
-                        System.out.println("Atualizacao automatica encerrada...");
-                        threadAtualizacao.join(); // Espera a thread terminar
-                        atualizacaoAtiva = false;
+                    System.out.println("Digite \"p\" para parar a atualizacao automatica...");
+                    String comandoParar = teclado.nextLine(); // Espera "p"
+                    
+                    while(!comandoParar.trim().equalsIgnoreCase("p")) {
+                        System.out.println("Digite \"p\" para parar a atualizacao automatica...");
+                        comandoParar = teclado.nextLine(); // Espera "p"
                     }
+                    // Espera o usuario digitar algo para parar
+                    //System.out.println("Atualizacao automatica encerrada...");
+                    atualizacaoAtiva = false;
+                    threadAtualizacao.join(); // Espera a thread terminar
+                    saida.println("p");
                 }
             }            
         
