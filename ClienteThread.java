@@ -23,9 +23,9 @@ public class ClienteThread implements Runnable{
                 java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss");
                 while(atualizacaoAtiva){
                     try {
-                        Thread.sleep(intervalo);
                         String horaAtual = java.time.LocalTime.now().format(formatter);
                         saida.println("Hora atual: " + horaAtual);
+                        Thread.sleep(intervalo);
                     } catch (InterruptedException e) {
                         System.err.println("Erro ao enviar hora automaticamente: " + e.getMessage());
                         break;

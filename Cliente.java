@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 
 
 public class Cliente{
-    private static final String SERVER_HOST = "localhost";
+    private static final String SERVER_HOST = "179.106.192.1";
     private static final int SERVER_PORT = 8080;
     private static volatile boolean atualizacaoAtiva = true;
 
