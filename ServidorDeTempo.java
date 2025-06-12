@@ -225,7 +225,11 @@ public class ServidorDeTempo {
             }catch(IOException e){
                 e.getMessage();
             }
-
+            finally {
+                clientesConectados.remove(id);
+                socketsClientes.remove(id);
+                registrarAcao("Cliente " + id + " desconectado.");
+            }
         }
     }
 
