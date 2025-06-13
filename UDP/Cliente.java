@@ -9,9 +9,9 @@ public class Cliente {
         DatagramSocket socket = new DatagramSocket();
         InetAddress enderecoServidor = InetAddress.getByName("localhost");
 
-        Thread receptor = new Thread(() -> {
+        Thread recebimento = new Thread(() -> {
             byte[] buffer = new byte[1024];
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 try {
                     DatagramPacket resposta = new DatagramPacket(buffer, buffer.length);
                     socket.receive(resposta);
@@ -22,7 +22,7 @@ public class Cliente {
                 }
             }
         });
-        receptor.start();
+        recebimento.start();
 
         Scanner sc = new Scanner(System.in);
         String opcao;
@@ -41,6 +41,24 @@ public class Cliente {
                 System.out.print("Digite o intervalo em milissegundos: ");
                 String intervalo = sc.nextLine();
                 enviarComando(socket, enderecoServidor, "2 " + intervalo);
+
+                System.out.println("Atualizações automáticas iniciadas. Digite 'p' para parar.");
+
+                // Espera até o usuário digitar "p" para parar as atualizações
+                String input;
+                do {
+                    input = sc.nextLine();
+                    if (!input.trim().equalsIgnoreCase("p")) {
+                        System.out.println("Digite 'p' para parar as atualizações automáticas.");
+                    }
+                } while (!input.trim().equalsIgnoreCase("p"));
+
+                enviarComando(socket, enderecoServidor, "p");
+
+                // Dá um tempo para o servidor responder antes de continuar
+                Thread.sleep(500);
+
+                System.out.println("Atualizações automáticas paradas.");
             } else if (opcao.equals("3")) {
                 enviarComando(socket, enderecoServidor, "3");
                 break;
@@ -49,8 +67,10 @@ public class Cliente {
             }
         }
 
+        recebimento.interrupt();
         socket.close();
         System.out.println("Cliente encerrado.");
+        sc.close();
     }
 
     private static void enviarComando(DatagramSocket socket, InetAddress endereco, String comando) throws Exception {
