@@ -22,7 +22,7 @@ public class ServidorDeTempo {
     private static final List<String> historicoDeAcoes = Collections.synchronizedList(new ArrayList<>());
     // e um mapa que armazena os clientes conectados.
     // A chave e o ID do cliente (uma String) e o valor e um PrintWriter que permite enviar mensagens para esse cliente.
-    private static final Map<String, Socket> socketsClientes = new ConcurrentHashMap<>();
+    
 
     private static final Map<String, PrintWriter> clientesConectados = new ConcurrentHashMap<>();    
 
@@ -197,7 +197,11 @@ public class ServidorDeTempo {
 
     public static void adicionarCliente(String id, PrintWriter escritor, Socket sockets) {
         clientesConectados.put(id, escritor);
-        socketsClientes.put(id, sockets);
+    }
+
+    public static void removerCliente(String id) {
+        clientesConectados.remove(id);
+        registrarAcao("Cliente " + id + " removido.");
     }
 
     public static void desconectarTodosOsClientes(){
@@ -208,8 +212,6 @@ public class ServidorDeTempo {
             saidaCliente = entry.getValue();
             String id = entry.getKey();
 
-            socketCliente = socketsClientes.get(id);
-
             try{
 
                 if(saidaCliente != null){
@@ -217,27 +219,17 @@ public class ServidorDeTempo {
                     saidaCliente.close();
                 }
 
-                if(socketCliente != null && !socketCliente.isClosed()){
-                    socketCliente.close();
-                    System.out.println("Soquete do cliente " + id + " fechado");
-                }
 
-            }catch(IOException e){
+            }catch(Exception e){
                 e.getMessage();
             }
             finally {
                 clientesConectados.remove(id);
-                socketsClientes.remove(id);
                 registrarAcao("Cliente " + id + " desconectado.");
             }
         }
     }
 
-    public static void removerCliente(String id) {
-        clientesConectados.remove(id);
-        socketsClientes.remove(id);
-        registrarAcao("Cliente " + id + " removido.");
-    }
 
     private static void encerrarServidor() {
         try {

@@ -36,7 +36,7 @@ public class Cliente {
     }
 
     public static void main(String[] args) {
-        System.out.println("=== CLIENTE SERVIDOR DE TEOMPO ===");
+        System.out.println("=== CLIENTE SERVIDOR DE TEMPO ===");
         System.out.println("Conectando ao servidor em " + SERVER_HOST + " na Porta: " + SERVER_PORT);
         try (
             Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
