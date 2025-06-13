@@ -16,12 +16,12 @@ import java.io.PrintWriter;
 public class ServidorDeTempo {
     private static final int PORTA = 8080;
     private static ServerSocket servidor;
-    // Controla a execução do codigo para cada cliente.
-    // É um gerenciador de threads. Ele cria e controla um "pool" (conjunto) de threads para lidar com múltiplos clientes ao mesmo tempo
+    // Controla a execucao do codigo para cada cliente.
+    // e um gerenciador de threads. Ele cria e controla um "pool" (conjunto) de threads para lidar com meltiplos clientes ao mesmo tempo
     private static ExecutorService poolConexoes;
     private static final List<String> historicoDeAcoes = Collections.synchronizedList(new ArrayList<>());
-    // É um mapa que armazena os clientes conectados.
-    // A chave é o ID do cliente (uma String) e o valor é um PrintWriter que permite enviar mensagens para esse cliente.
+    // e um mapa que armazena os clientes conectados.
+    // A chave e o ID do cliente (uma String) e o valor e um PrintWriter que permite enviar mensagens para esse cliente.
     private static final Map<String, Socket> socketsClientes = new ConcurrentHashMap<>();
 
     private static final Map<String, PrintWriter> clientesConectados = new ConcurrentHashMap<>();    
@@ -29,6 +29,7 @@ public class ServidorDeTempo {
     private static volatile boolean flag = true;
 
     private static void mostrarHoraAutomaticaServidor(){
+        if(flag == false) flag = true;
         String resposta;
         do{ 
             Thread tempoAtual = new Thread( new Runnable(){
@@ -57,7 +58,7 @@ public class ServidorDeTempo {
     }
 
     private static void mostrarLogPorCliente() {
-    System.out.println("=== LOG DE AÇÕES POR CLIENTE ===");
+    System.out.println("=== LOG DE ACOES POR CLIENTE ===");
 
     // Mapa: chave = ID do cliente, valor = lista de ações
     Map<String, List<String>> logPorCliente = new HashMap<>();
@@ -102,7 +103,7 @@ public class ServidorDeTempo {
     int numeroClientes = clientesConectados.size();
     
     System.out.println("=== CLIENTES CONECTADOS ===");
-    System.out.println("Número total de clientes conectados: " + numeroClientes);
+    System.out.println("Numero total de clientes conectados: " + numeroClientes);
     
     if (numeroClientes > 0) {
         System.out.println("IDs dos clientes conectados:");
@@ -160,7 +161,6 @@ public class ServidorDeTempo {
 
         }while(opcao != 5);
     }
-
 
     public static String obterTempoAtual(){
 
@@ -225,16 +225,27 @@ public class ServidorDeTempo {
             }catch(IOException e){
                 e.getMessage();
             }
-
+            finally {
+                clientesConectados.remove(id);
+                socketsClientes.remove(id);
+                registrarAcao("Cliente " + id + " desconectado.");
+            }
         }
+    }
+
+    public static void removerCliente(String id) {
+        clientesConectados.remove(id);
+        socketsClientes.remove(id);
+        registrarAcao("Cliente " + id + " removido.");
     }
 
     private static void encerrarServidor() {
         try {
+            desconectarTodosOsClientes(); 
             if (servidor != null) servidor.close();
             if (poolConexoes != null) poolConexoes.shutdown();
         } catch (IOException e) {
-            System.err.println("Erro ao encerrar servidor: " + e.getMessage());
+        System.err.println("Erro ao encerrar servidor: " + e.getMessage());
         }
     }
     
