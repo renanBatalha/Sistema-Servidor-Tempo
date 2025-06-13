@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 
 public class Cliente {
-    private static final String SERVER_HOST = "179.106.195.1";
+    private static final String SERVER_HOST = "localhost"; // Endereco do servidor
     private static final int SERVER_PORT = 8080;
     private static volatile boolean atualizacaoAtiva = true;
     private static volatile long tempoAtrasoServidor = 0;
@@ -36,7 +36,7 @@ public class Cliente {
     }
 
     public static void main(String[] args) {
-        System.out.println("=== CLIENTE SERVIDOR DE TEOMPO ===");
+        System.out.println("=== CLIENTE SERVIDOR DE TEMPO ===");
         System.out.println("Conectando ao servidor em " + SERVER_HOST + " na Porta: " + SERVER_PORT);
         try (
             Socket socket = new Socket(SERVER_HOST, SERVER_PORT);
@@ -82,26 +82,32 @@ public class Cliente {
                                 if (horaRecebida == null) break;
                                 if (!atualizacaoAtiva) break;
 
-                                if (horaRecebida.startsWith("Hora atualizada: Tempo Atraso Servidor:")) {
-                                    String dados = horaRecebida.substring("Hora atualizada: Tempo Atraso Servidor:".length());
+                                if (horaRecebida.startsWith("Tempo Atraso Servidor:")) {
+                                    String dados = horaRecebida.substring("Tempo Atraso Servidor:".length());
                                     String[] partes = dados.split(":");
                                     if (partes.length >= 4) {
                                         try {
                                             tempoAtrasoServidor = Long.parseLong(partes[0].trim());
                                             String horaRecebidaFormatada = String.format("%s:%s:%s", partes[1], partes[2], partes[3]);
+                                            
+                                            long tempoAtrasoServidor = Long.parseLong(partes[0].trim());
+                                            
 
                                             long tempoAtualCliente = System.currentTimeMillis();
+
                                             long atraso = tempoAtualCliente - tempoAtrasoServidor;
+
                                             String horaCorrigida = Cliente.ajustarHora(horaRecebidaFormatada, atraso);
-                                            System.out.println("Hora atualizada corrigida: " + horaCorrigida);
+
+                                            System.out.println("Hora Automatica: " + horaCorrigida);
                                         } catch (NumberFormatException e) {
                                             System.err.println("Erro ao converter tempo de atraso: " + e.getMessage());
                                         }
                                     } else {
-                                        System.err.println("Formato inválido da hora recebida.");
+                                        System.err.println("Formato invalido da hora recebida.");
                                     }
                                 } else {
-                                    System.out.println("Hora atualizada: " + horaRecebida);
+                                    System.out.println("Hora Automatica: " + horaRecebida);
                                 }
                             }
                         } catch (IOException e) {

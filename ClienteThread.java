@@ -2,7 +2,6 @@ import java.io.*;
 import java.net.*;
 import java.util.List;
 
-// classe de manipulacao / handler
 public class ClienteThread implements Runnable{
     private Socket conexao; 
     private String clienteConectado;
@@ -23,8 +22,8 @@ public class ClienteThread implements Runnable{
                 java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss");
                 while(atualizacaoAtiva){
                     try {
-                        String horaAtual = java.time.LocalTime.now().format(formatter);
-                        saida.println("Hora atual: " + horaAtual);
+                        saida.println("Tempo Atraso Servidor:" + System.currentTimeMillis() + ":" + java.time.LocalTime.now().format(formatter));
+                        saida.flush();
                         Thread.sleep(intervalo);
                     } catch (InterruptedException e) {
                         System.err.println("Erro ao enviar hora automaticamente: " + e.getMessage());
@@ -60,7 +59,7 @@ public class ClienteThread implements Runnable{
         }
     }
 
-private void Menu() throws IOException{
+    private void Menu() throws IOException{
         saida.println("=== SERVIDOR DE HORA ===");
         saida.println("Comandos disponiveis:");
         saida.println("1.  - Mostrar a Hora Atual");
@@ -69,7 +68,7 @@ private void Menu() throws IOException{
         saida.println("Digite um Comando: ");
     }
     
-private void tratarComando(Integer comando) throws IOException {
+    private void tratarComando(Integer comando) throws IOException {
         switch (comando) {
             case 1:
                 enviarHoraAtual();
@@ -86,7 +85,6 @@ private void tratarComando(Integer comando) throws IOException {
                 String resposta;
                 while ((resposta = entrada.readLine()) != null) {
                     if (resposta.trim().equalsIgnoreCase("p")) {
-                        //saida.println("Atualizacao automatica encerrada...");
                         this.atualizacaoAtiva = false;
                         break;
                     }
@@ -108,10 +106,9 @@ private void tratarComando(Integer comando) throws IOException {
             default:
                 saida.println("Comando invalido. Tente novamente.");
         }
-
     } 
     
-private void enviarHoraAtual() {
+    private void enviarHoraAtual() {
         String horaAtual = ServidorDeTempo.obterTempoAtual();
         saida.println("Hora atual: " + horaAtual);
     }
@@ -129,6 +126,9 @@ private void enviarHoraAtual() {
                 }
             } catch (IOException e) {
                 System.err.println("Erro ao encerrar a conexao: " + e.getMessage());
+            }
+            finally{
+                ServidorDeTempo.removerCliente(clienteConectado);
             }
     }
 }

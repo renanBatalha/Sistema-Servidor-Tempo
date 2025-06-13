@@ -16,12 +16,12 @@ import java.io.PrintWriter;
 public class ServidorDeTempo {
     private static final int PORTA = 8080;
     private static ServerSocket servidor;
-    // Controla a execução do codigo para cada cliente.
-    // É um gerenciador de threads. Ele cria e controla um "pool" (conjunto) de threads para lidar com múltiplos clientes ao mesmo tempo
+    // Controla a execucao do codigo para cada cliente.
+    // e um gerenciador de threads. Ele cria e controla um "pool" (conjunto) de threads para lidar com meltiplos clientes ao mesmo tempo
     private static ExecutorService poolConexoes;
     private static final List<String> historicoDeAcoes = Collections.synchronizedList(new ArrayList<>());
-    // É um mapa que armazena os clientes conectados.
-    // A chave é o ID do cliente (uma String) e o valor é um PrintWriter que permite enviar mensagens para esse cliente.
+    // e um mapa que armazena os clientes conectados.
+    // A chave e o ID do cliente (uma String) e o valor e um PrintWriter que permite enviar mensagens para esse cliente.
     private static final Map<String, Socket> socketsClientes = new ConcurrentHashMap<>();
 
     private static final Map<String, PrintWriter> clientesConectados = new ConcurrentHashMap<>();    
@@ -29,6 +29,7 @@ public class ServidorDeTempo {
     private static volatile boolean flag = true;
 
     private static void mostrarHoraAutomaticaServidor(){
+        if(flag == false) flag = true;
         String resposta;
         do{ 
             Thread tempoAtual = new Thread( new Runnable(){
@@ -161,7 +162,6 @@ public class ServidorDeTempo {
         }while(opcao != 5);
     }
 
-
     public static String obterTempoAtual(){
 
             // Le o tempo atual da maquina servidora
@@ -198,6 +198,12 @@ public class ServidorDeTempo {
     public static void adicionarCliente(String id, PrintWriter escritor, Socket sockets) {
         clientesConectados.put(id, escritor);
         socketsClientes.put(id, sockets);
+    }
+
+    public static void removerCliente(String id) {
+        clientesConectados.remove(id);
+        socketsClientes.remove(id);
+        registrarAcao("Cliente " + id + " removido.");
     }
 
     public static void desconectarTodosOsClientes(){
