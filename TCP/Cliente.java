@@ -9,31 +9,6 @@ public class Cliente {
     private static final String SERVER_HOST = "localhost"; // Endereco do servidor
     private static final int SERVER_PORT = 8080;
     private static volatile boolean atualizacaoAtiva = true;
-    private static volatile long tempoAtrasoServidor = 0;
-
-    public static String ajustarHora(String horaRecebida, long atraso) {
-        String[] partes = horaRecebida.split(":");
-        int horas = Integer.parseInt(partes[0]);
-        int minutos = Integer.parseInt(partes[1]);
-        int segundos = Integer.parseInt(partes[2]);
-
-        long atrasoEmSegundos = atraso / 1000;
-        segundos += atrasoEmSegundos;
-
-        if (segundos >= 60) {
-            minutos += segundos / 60;
-            segundos %= 60;
-        }
-        if (minutos >= 60) {
-            horas += minutos / 60;
-            minutos %= 60;
-        }
-        if (horas >= 24) {
-            horas %= 24;
-        }
-
-        return String.format("%02d:%02d:%02d", horas, minutos, segundos);
-    }
 
     public static void main(String[] args) {
         System.out.println("=== CLIENTE SERVIDOR DE TEMPO ===");
@@ -49,17 +24,8 @@ public class Cliente {
 
             String linha;
             while ((linha = entrada.readLine()) != null) {
-                if (linha.startsWith("Tempo Atraso Servidor:")) {
-                    String[] partes = linha.split(":", 3);
-                    tempoAtrasoServidor = Long.parseLong(partes[1].trim());
-                    continue;
-                }
 
-                if (linha.contains("Tempo Anterior:")) {
-                    tempoAtrasoServidor = Long.parseLong(linha.split(":")[1].trim());
-                } else {
-                    System.out.println(linha);
-                }
+                System.out.println(linha);
 
                 if (linha.contains("Digite um Comando")) {
                     System.out.print("> ");
@@ -70,7 +36,6 @@ public class Cliente {
                 if (linha.contains("Digite o intervalo")) {
                     System.out.print("> ");
                     String intervaloStr = teclado.nextLine();
-                    int intervalo = Integer.parseInt(intervaloStr);
                     saida.println(intervaloStr);
 
                     atualizacaoAtiva = true;
@@ -82,24 +47,15 @@ public class Cliente {
                                 if (horaRecebida == null) break;
                                 if (!atualizacaoAtiva) break;
 
-                                if (horaRecebida.startsWith("Tempo Atraso Servidor:")) {
-                                    String dados = horaRecebida.substring("Tempo Atraso Servidor:".length());
+                                if (horaRecebida.startsWith("Tempo do Servidor:")) {
+                                    String dados = horaRecebida.substring("Tempo do Servidor:".length());
                                     String[] partes = dados.split(":");
-                                    if (partes.length >= 4) {
+                                    if (partes.length >= 3) {
                                         try {
-                                            tempoAtrasoServidor = Long.parseLong(partes[0].trim());
-                                            String horaRecebidaFormatada = String.format("%s:%s:%s", partes[1], partes[2], partes[3]);
                                             
-                                            long tempoAtrasoServidor = Long.parseLong(partes[0].trim());
-                                            
+                                            String horaRecebidaFormatada = String.format("%s:%s:%s", partes[0], partes[1], partes[2]);                                    
+                                            System.out.println("Hora Automatica: " + horaRecebidaFormatada);
 
-                                            long tempoAtualCliente = System.currentTimeMillis();
-
-                                            long atraso = tempoAtualCliente - tempoAtrasoServidor;
-
-                                            String horaCorrigida = Cliente.ajustarHora(horaRecebidaFormatada, atraso);
-
-                                            System.out.println("Hora Automatica: " + horaCorrigida);
                                         } catch (NumberFormatException e) {
                                             System.err.println("Erro ao converter tempo de atraso: " + e.getMessage());
                                         }
@@ -128,7 +84,6 @@ public class Cliente {
                     saida.println("p");
                 }
             }
-
         } catch (Exception e) {
             System.err.println("Erro ao conectar ao servidor: " + e.getMessage());
         }

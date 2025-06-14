@@ -17,7 +17,7 @@ public class ServidorDeTempo {
     private static final int PORTA = 8080;
     private static ServerSocket servidor;
     // Controla a execucao do codigo para cada cliente.
-    // e um gerenciador de threads. Ele cria e controla um "pool" (conjunto) de threads para lidar com meltiplos clientes ao mesmo tempo
+    // e um gerenciador de threads. Ele cria e controla um "pool" (conjunto) de threads para lidar com multiplos clientes ao mesmo tempo
     private static ExecutorService poolConexoes;
     private static final List<String> historicoDeAcoes = Collections.synchronizedList(new ArrayList<>());
     // e um mapa que armazena os clientes conectados.
@@ -206,7 +206,6 @@ public class ServidorDeTempo {
 
     public static void desconectarTodosOsClientes(){
         PrintWriter saidaCliente;
-        Socket socketCliente;
 
         for (Map.Entry<String, PrintWriter> entry : clientesConectados.entrySet()) {
             saidaCliente = entry.getValue();
@@ -263,9 +262,8 @@ public class ServidorDeTempo {
 
             while(true){
 
-
-            Socket clienteSocket = servidor.accept();
-            poolConexoes.execute(new ClienteThread(clienteSocket));
+                Socket clienteSocket = servidor.accept();
+                poolConexoes.execute(new ClienteThread(clienteSocket));
 
             }
         } catch (IOException e) {

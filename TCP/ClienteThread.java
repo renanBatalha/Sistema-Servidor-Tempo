@@ -1,6 +1,5 @@
 import java.io.*;
 import java.net.*;
-import java.util.List;
 
 public class ClienteThread implements Runnable{
     private Socket conexao; 
@@ -22,7 +21,7 @@ public class ClienteThread implements Runnable{
                 java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss");
                 while(atualizacaoAtiva){
                     try {
-                        saida.println("Tempo Atraso Servidor:" + System.currentTimeMillis() + ":" + java.time.LocalTime.now().format(formatter));
+                        saida.println("Tempo do Servidor:" + java.time.LocalTime.now().format(formatter));
                         saida.flush();
                         Thread.sleep(intervalo);
                     } catch (InterruptedException e) {
