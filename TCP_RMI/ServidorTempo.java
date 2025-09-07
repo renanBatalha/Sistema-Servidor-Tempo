@@ -8,20 +8,34 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class ServidorTempo implements Tempo{
+
+    private final List<String> logs = new ArrayList<>();
+
+    public static void Menu(){
+        System.out.println("=== SERVIDOR DE TEMPO ===");
+        System.out.println("Comandos disponiveis:");
+        System.out.println("1.  - Mostrar log de solicitações");
+        System.out.println("2.  - Encerrar Servidor");
+        System.out.println("Digite um Comando: ");
+    }
     
     @Override
     public String obterTempoAtual(){
         LocalDateTime tempoAtual = LocalDateTime.now();
-        return tempoAtual.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+        String resposta =  tempoAtual.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+         logs.add("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) 
+                        + "] Cliente solicitou hora atual: " + resposta);
+        return resposta;
     }
 
     @Override
-    public List<String> obterLog() throws RemoteException{
-        List<String> lista = new ArrayList<>();
-        return lista;
+    public synchronized List<String> obterLog() throws RemoteException {
+        return new ArrayList<>(logs); 
     }
+
 
     public static void main(String[] args) {
             try {
@@ -34,7 +48,34 @@ public class ServidorTempo implements Tempo{
                 Registry registry = LocateRegistry.createRegistry(2000);
                 registry.bind("ServidorTempo", stub);
 
-                System.out.println("Server ready on port 2000");
+                System.out.println("Servidor pronto e rodando na porta 2000");
+
+                int opcao;
+                Scanner entrada = new Scanner(System.in);
+                
+                do {
+                    Menu();
+                    opcao = entrada.nextInt();
+                    switch (opcao) {
+                        case 1:
+                            // Mostrar log de solicitações
+                            System.out.println("Log de solicitações:");
+                            List<String> log = obj.obterLog();
+                            for (String registro : log) {
+                                System.out.println(registro);
+                            }
+                            break;
+                        case 2:
+                            System.out.println("Encerrando servidor...");
+                            System.exit(0);
+                            break;
+                        default:
+                            System.out.println("Opção inválida!");
+                            break;
+                    }
+                } while (opcao != 2);
+                entrada.close();
+                
             } catch(Exception e) {
                 e.printStackTrace();
             }
