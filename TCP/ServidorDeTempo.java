@@ -13,6 +13,8 @@ import java.util.concurrent.Executors;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+
+
 public class ServidorDeTempo {
     private static final int PORTA = 8080;
     private static ServerSocket servidor;
@@ -58,45 +60,47 @@ public class ServidorDeTempo {
     }
 
     private static void mostrarLogPorCliente() {
-    System.out.println("=== LOG DE ACOES POR CLIENTE ===");
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("=== LOG DE ACOES POR CLIENTE ===");
 
-    // Mapa: chave = ID do cliente, valor = lista de ações
-    Map<String, List<String>> logPorCliente = new HashMap<>();
+        // Mapa: chave = ID do cliente, valor = lista de ações
+        Map<String, List<String>> logPorCliente = new HashMap<>();
 
-    synchronized (historicoDeAcoes) {
-        for (String entrada : historicoDeAcoes) {
-            // Verifica se a entrada contém "Cliente: [id]"
-            int indice = entrada.indexOf("Cliente ");
-            if (indice != -1) {
-                String parteCliente = entrada.substring(indice);
-                String[] partes = parteCliente.split(" ");
-                if (partes.length >= 2) {
-                    String idCliente = partes[1];
+        synchronized (historicoDeAcoes) {
+            for (String entrada : historicoDeAcoes) {
+                // Verifica se a entrada contém "Cliente: [id]"
+                int indice = entrada.indexOf("Cliente ");
+                if (indice != -1) {
+                    String parteCliente = entrada.substring(indice);
+                    String[] partes = parteCliente.split(" ");
+                    if (partes.length >= 2) {
+                        String idCliente = partes[1];
 
-                    logPorCliente.putIfAbsent(idCliente, new ArrayList<>());
-                    logPorCliente.get(idCliente).add(entrada);
+                        logPorCliente.putIfAbsent(idCliente, new ArrayList<>());
+                        logPorCliente.get(idCliente).add(entrada);
+                    }
                 }
             }
         }
-    }
 
-    if (logPorCliente.isEmpty()) {
-        System.out.println("Nenhum log associado a clientes encontrado.");
-    } else {
-        for (Map.Entry<String, List<String>> entrada : logPorCliente.entrySet()) {
-            System.out.println("Cliente com ID: " + entrada.getKey());
-            for (String acao : entrada.getValue()) {
-                System.out.println("  - " + acao);
+        if (logPorCliente.isEmpty()) {
+            System.out.println("Nenhum log associado a clientes encontrado.");
+        } else {
+            for (Map.Entry<String, List<String>> entrada : logPorCliente.entrySet()) {
+                System.out.println("Cliente com ID: " + entrada.getKey());
+                for (String acao : entrada.getValue()) {
+                    System.out.println("  - " + acao);
+                }
+                System.out.println("--------------------------------");
             }
-            System.out.println("--------------------------------");
         }
-    }
 
-    System.out.println("================================");
-    System.out.println("Pressione Enter para continuar...");
-    Scanner scanner = new Scanner(System.in);
-    scanner.nextLine();
-}
+        System.out.println("================================");
+        System.out.println("Pressione Enter para continuar...");
+        
+        scanner.nextLine();
+        scanner.close();
+    }
 
 
     private static void mostrarClientesConectados() {
@@ -118,6 +122,7 @@ public class ServidorDeTempo {
     System.out.println("Pressione Enter para continuar...");
     Scanner scanner = new Scanner(System.in);
     scanner.nextLine(); 
+    scanner.close(); //
     }
 
     private static void Menu(){
@@ -160,10 +165,10 @@ public class ServidorDeTempo {
             }
 
         }while(opcao != 5);
+        scanner.close();
     }
 
     public static String obterTempoAtual(){
-
             // Le o tempo atual da maquina servidora
             LocalDateTime tempoAtual = LocalDateTime.now();
 
