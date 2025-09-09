@@ -5,6 +5,11 @@ public class Blowfish {
     private static final int numero_de_subchaves = 18;
     private static final int Rodadas = 16;
 
+    // Inicializacao dos S-Boxes
+        public static String[] SBox0 = Util.sBox0;
+        public static String[] SBox1 = Util.sBox1;
+        public static String[] SBox2 = Util.sBox2;
+        public static String[] SBox3 = Util.sBox3;
     
     public static String operacaoXOR(String hex1, int int2){
         // Converte a string hexadecimal em um valor inteiro
@@ -40,7 +45,20 @@ public class Blowfish {
         int c = parte_esquerda_bytes[2] & 0xFF;
         int d = parte_esquerda_bytes[3] & 0xFF;
 
-        
+        //F(R) = ((SBox0[a] + SBox1[b]) XOR SBox2[c]) + SBox3[d]
+        int valorSBox0 = Integer.parseUnsignedInt(SBox0[a], 16);
+        int valorSBox1 = Integer.parseUnsignedInt(SBox1[b], 16);    
+        int valorSBox2 = Integer.parseUnsignedInt(SBox2[c], 16);
+        int valorSBox3 = Integer.parseUnsignedInt(SBox3[d], 16);
+        int resultado = ((valorSBox0 + valorSBox1) ^ valorSBox2) + valorSBox3;
+
+        return resultado;
+    }
+
+    public static void trocarNumeros(int esquerda, int direita){
+        int temp = esquerda;
+        esquerda = direita;
+        direita = temp;
     }
     
     public static String Encriptar(String texto_plano, String chave){
@@ -48,12 +66,6 @@ public class Blowfish {
         //==============::Passo 1: Gerar subchaves::==============//
         // Inicializacao do array P com valores hexadecimais oriundos do valor de pi
         String[] Array_P = Util.Array_P;
-
-        // Inicializacao dos S-Boxes
-        String[] SBox0 = Util.sBox0;
-        String[] SBox1 = Util.sBox1;
-        String[] SBox2 = Util.sBox2;
-        String[] SBox3 = Util.sBox3;
 
         //==============::Passo 2: Mudar as subchaves com base na chave de entrada (P[0] = P[0] XOR Chave[0]) ::==============//
 
@@ -105,10 +117,12 @@ public class Blowfish {
 
             parte_direita = operacaoXORComInteiros(funcaoF(parte_esquerda), parte_direita);
 
-            trocarPartes(parte_esquerda, parte_direita);
-
-
+            trocarNumeros(parte_esquerda, parte_direita);
         }
+        parte_direita = operacaoXORComInteiros(parte_direita, Integer.parseUnsignedInt(Array_P[Rodadas], 16));
+        parte_esquerda = operacaoXORComInteiros(parte_esquerda, Integer.parseUnsignedInt(Array_P[Rodadas + 1], 16));
+        trocarNumeros(parte_esquerda, parte_direita);
+        System.out.printf("Texto cifrado 64 bits: %08x%08x%n", parte_esquerda, parte_direita);
 
         return null;
     }
