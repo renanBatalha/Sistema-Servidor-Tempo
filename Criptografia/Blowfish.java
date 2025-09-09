@@ -19,6 +19,29 @@ public class Blowfish {
 
         return hexResultado;
     }
+
+    public static int operacaoXORComInteiros(int num1, int num2){
+        int resultado = num1 ^ num2;
+        return resultado;
+    }
+
+    public static int funcaoF(int parte_esquerda){
+
+        // divide a parte esquerda por byte
+        byte[] parte_esquerda_bytes = new byte[4];
+        parte_esquerda_bytes[0] = (byte) ((parte_esquerda >> 24) & 0xFF);
+        parte_esquerda_bytes[1] = (byte) ((parte_esquerda >> 16) & 0xFF);
+        parte_esquerda_bytes[2] = (byte) ((parte_esquerda >> 8) & 0xFF);
+        parte_esquerda_bytes[3] = (byte) (parte_esquerda & 0xFF);
+
+        // cada inteiro representa um índice para os S-Boxes
+        int a = parte_esquerda_bytes[0] & 0xFF;
+        int b = parte_esquerda_bytes[1] & 0xFF;
+        int c = parte_esquerda_bytes[2] & 0xFF;
+        int d = parte_esquerda_bytes[3] & 0xFF;
+
+        
+    }
     
     public static String Encriptar(String texto_plano, String chave){
 
@@ -71,9 +94,22 @@ public class Blowfish {
         
         // Divide a mensagem em duas partes de 32 bits
 
-        int esquerda = ((texto_plano_64Bytes[0] & 0xFF) << 24) | ((texto_plano_64Bytes[1] & 0xFF) << 16) | ((texto_plano_64Bytes[2] & 0xFF) << 8) | (texto_plano_64Bytes[3] & 0xFF);
-        int direita = ((texto_plano_64Bytes[4] & 0xFF) << 24) | ((texto_plano_64Bytes[5] & 0xFF) << 16) | ((texto_plano_64Bytes[6] & 0xFF) << 8) | (texto_plano_64Bytes[7] & 0xFF);
+        int parte_esquerda = ((texto_plano_64Bytes[0] & 0xFF) << 24) | ((texto_plano_64Bytes[1] & 0xFF) << 16) | ((texto_plano_64Bytes[2] & 0xFF) << 8) | (texto_plano_64Bytes[3] & 0xFF);
+        int parte_direita = ((texto_plano_64Bytes[4] & 0xFF) << 24) | ((texto_plano_64Bytes[5] & 0xFF) << 16) | ((texto_plano_64Bytes[6] & 0xFF) << 8) | (texto_plano_64Bytes[7] & 0xFF);
         
+        // System.out.printf("Texto plano 64 bits: %08x%08x%n", esquerda, direita);
+
+        for (int i = 0; i < Rodadas; i++){
+            int valorP = Integer.parseUnsignedInt(Array_P[i], 16);
+            parte_esquerda = operacaoXORComInteiros(parte_esquerda, valorP);
+
+            parte_direita = operacaoXORComInteiros(funcaoF(parte_esquerda), parte_direita);
+
+            trocarPartes(parte_esquerda, parte_direita);
+
+
+        }
+
         return null;
     }
     public static void main(String[] args) {
