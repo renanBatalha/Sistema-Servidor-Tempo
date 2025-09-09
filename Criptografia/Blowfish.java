@@ -5,13 +5,13 @@ public class Blowfish {
     private static final int numero_de_subchaves = 18;
     private static final int Rodadas = 16;
 
-    public static String operacaoXOR(String hex1, byte byte2){
+    
+    public static String operacaoXOR(String P_Array, int chave32Bytes){
         // Converte a string hexadecimal em um valor inteiro
-        int int1 = Integer.parseUnsignedInt(hex1, 16);
-        int int2 = Byte.toUnsignedInt(byte2);
+        int intP = Integer.parseUnsignedInt(P_Array, 16);
 
         // Realiza a operação XOR
-        int resultado = int1 ^ int2;
+        int resultado = intP ^ chave32Bytes;
 
         // Converte o resultado de volta para uma string hexadecimal
         String hexResultado = Integer.toHexString(resultado);
@@ -47,7 +47,7 @@ public class Blowfish {
                 // A chave e repetida caso seja menor que o numero de subchaves
                 chave32Bytes = chave32Bytes << 8 | chaveBytes[(i * 4 + j) % chaveBytes.length];
             }
-            Array_P[i] = operacaoXOR(Array_P[i], (byte) chave32Bytes);
+            Array_P[i] = operacaoXOR(Array_P[i], chave32Bytes);
         }
 
 
