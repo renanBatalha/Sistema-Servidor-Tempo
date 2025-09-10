@@ -20,10 +20,21 @@ public class Blowfish {
 
         String hexResultado = String.format("%08x", resultado);
 
-        //System.out.printf("XOR: (%s ^ %08x) = %s%n", hex1, int2, hexResultado);
+        System.out.printf("XOR: (%s ^ %08x) = %s%n", hex1, int2, hexResultado);
 
         return hexResultado;
     }
+
+    public static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                                + Character.digit(s.charAt(i+1), 16));
+        }
+        return data;
+    }
+
 
     public static int operacaoXORComInteiros(int num1, int num2){
         int resultado = num1 ^ num2;
@@ -50,26 +61,22 @@ public class Blowfish {
         int valorSBox1 = Integer.parseUnsignedInt(SBox1[b], 16);    
         int valorSBox2 = Integer.parseUnsignedInt(SBox2[c], 16);
         int valorSBox3 = Integer.parseUnsignedInt(SBox3[d], 16);
-        int resultado = ((valorSBox0 + valorSBox1) ^ valorSBox2) + valorSBox3;
+        int resultado = (((valorSBox0 + valorSBox1)& 0xFFFFFFFF) ^ valorSBox2) + valorSBox3;
+        resultado = resultado & 0xFFFFFFFF; // Mantém apenas os 32 bits menos significativos
 
         return resultado;
-    }
-
-    public static void trocarNumeros(int esquerda, int direita){
-        int temp = esquerda;
-        esquerda = direita;
-        direita = temp;
     }
     
     public static String Encriptar(String texto_plano, String chave){
 
         //==============::Passo 1: Gerar subchaves::==============//
         // Inicializacao do array P com valores hexadecimais oriundos do valor de pi
-        String[] Array_P = Util.Array_P;
+        String[] Array_P = Util.Array_P.clone();
 
         //==============::Passo 2: Mudar as subchaves com base na chave de entrada (P[0] = P[0] XOR Chave[0]) ::==============//
 
-        byte[] chaveBytes = chave.getBytes();
+        // byte[] chaveBytes = chave.getBytes();
+        byte[] chaveBytes = hexStringToByteArray(chave);
         int chave32Bytes = 0;
 
         for(int i = 0; i < numero_de_subchaves; i++){
@@ -78,15 +85,16 @@ public class Blowfish {
             for (int j = 0; j < 4; j++){
                 // Realiza a operacao XOR entre a subchave e o byte da chave
                 // A chave e repetida caso seja menor que o numero de subchaves
-                chave32Bytes = chave32Bytes << 8 | chaveBytes[(i * 4 + j) % chaveBytes.length];
+                int b = Byte.toUnsignedInt(chaveBytes[(i * 4 + j) % chaveBytes.length]);
+                chave32Bytes = chave32Bytes << 8 | b;
             }
 
             //System.out.printf("Subchave P[%d] antes: %s, chave32Bytes: %08x%n", i, Array_P[i], chave32Bytes);
 
             Array_P[i] = operacaoXOR(Array_P[i], chave32Bytes);
 
-            //System.out.printf("Subchave P[%d] depois: %s%n", i, Array_P[i]);
-            //System.out.println("--------------------------------------------------");
+            System.out.printf("Subchave P[%d] depois: %s%n", i, Array_P[i]);
+            System.out.println("--------------------------------------------------");
         }
 
         //==============::Passo 3: Encriptar a mensagem com as 16 rodads de Feistel ::==============//
@@ -117,17 +125,29 @@ public class Blowfish {
 
             parte_direita = operacaoXORComInteiros(funcaoF(parte_esquerda), parte_direita);
 
-            trocarNumeros(parte_esquerda, parte_direita);
+            // Troca as partes esquerda e direita (SWAP)
+            int aux = parte_esquerda;
+            parte_esquerda = parte_direita;
+            parte_direita = aux;            
         }
-        parte_direita = operacaoXORComInteiros(parte_direita, Integer.parseUnsignedInt(Array_P[Rodadas], 16));
-        parte_esquerda = operacaoXORComInteiros(parte_esquerda, Integer.parseUnsignedInt(Array_P[Rodadas + 1], 16));
-        trocarNumeros(parte_esquerda, parte_direita);
-        System.out.printf("Texto cifrado 64 bits: %08x%08x%n", parte_esquerda, parte_direita);
+        
+        // Troca final (SWAP)
+        // Desfaz o último swap do loop
+        int aux = parte_esquerda;
+        parte_esquerda = parte_direita;
+        parte_direita = aux;
 
-        return null;
+        // Agora aplica os XORs finais
+        parte_direita = operacaoXORComInteiros(parte_direita, Integer.parseUnsignedInt(Array_P[Rodadas], 16));   // P[16]
+        parte_esquerda = operacaoXORComInteiros(parte_esquerda, Integer.parseUnsignedInt(Array_P[Rodadas + 1], 16)); // P[17]
+        
+
+        System.out.printf("Texto cifrado 64 bits: %08x%08x%n", parte_esquerda, parte_direita);
+        return String.format("%08x%08x", parte_esquerda, parte_direita);
+
     }
     public static void main(String[] args) {
-        String chave = "ABCD";
-        Encriptar("textoTeste", chave);        
+        String chave = "aabb09182736ccdd";
+        Encriptar("123456abcd132536", chave);        
     }
 }
