@@ -17,6 +17,14 @@ public class Blowfish {
         return String.format("%08x", resultado);
     }
 
+    public static String byteArrayToHexString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
+
     public static byte[] hexStringToByteArray(String s) {
         int len = s.length();
         byte[] data = new byte[len / 2];
@@ -30,6 +38,8 @@ public class Blowfish {
     public static int operacaoXORComInteiros(int num1, int num2){
         return num1 ^ num2;
     }
+
+
     
     public static int funcaoF(int parte_esquerda) {
         byte[] bytes = new byte[4];
@@ -73,6 +83,31 @@ public class Blowfish {
 
         xr = operacaoXORComInteiros(xr, Integer.parseUnsignedInt(Array_P[Rodadas], 16));
         xl = operacaoXORComInteiros(xl, Integer.parseUnsignedInt(Array_P[Rodadas + 1], 16));
+
+        return new int[] {xl, xr};
+    }
+
+    // Descriptografa um único bloco 64 bits - usa subchaves em ordem reversa
+    public static int[] descriptografarBloco(int xl, int xr, String[] Array_P) {
+        xl = operacaoXORComInteiros(xl, Integer.parseUnsignedInt(Array_P[Rodadas + 1], 16));
+        xr = operacaoXORComInteiros(xr, Integer.parseUnsignedInt(Array_P[Rodadas], 16));
+
+        // Swap inicial
+        int aux = xl;
+        xl = xr;
+        xr = aux;
+
+        // Aplica rodadas em ordem reversa (de 15 até 0)
+        for (int i = Rodadas - 1; i >= 0; i--) {
+            // Swap
+            aux = xl;
+            xl = xr;
+            xr = aux;
+
+            xr = operacaoXORComInteiros(funcaoF(xl), xr);
+            int valorP = Integer.parseUnsignedInt(Array_P[i], 16);
+            xl = operacaoXORComInteiros(xl, valorP);
+        }
 
         return new int[] {xl, xr};
     }
@@ -180,8 +215,70 @@ public class Blowfish {
         return String.format("%08x%08x", resultado[0], resultado[1]);
     }
 
+     public static String Descriptografar(String texto_cifrado, String chave) {
+        // Clona arrays para evitar modificar os originais
+        String[] Array_P = Util.Array_P.clone();
+        String[] s0 = Util.sBox0.clone();
+        String[] s1 = Util.sBox1.clone();
+        String[] s2 = Util.sBox2.clone();
+        String[] s3 = Util.sBox3.clone();
+
+        byte[] chaveBytes = hexStringToByteArray(chave);
+
+        // Executa o key schedule para inicializar P e S com a chave
+        keySchedule(Array_P, s0, s1, s2, s3, chaveBytes);
+
+        // Prepara bloco do texto cifrado
+        byte[] texto_cifrado_Bytes = hexStringToByteArray(texto_cifrado);
+        
+        // Garante que temos exatamente 8 bytes (64 bits)
+        if (texto_cifrado_Bytes.length < 8) {
+            byte[] temp = new byte[8];
+            System.arraycopy(texto_cifrado_Bytes, 0, temp, 0, texto_cifrado_Bytes.length);
+            texto_cifrado_Bytes = temp;
+        }
+
+        int parte_esquerda = ((texto_cifrado_Bytes[0] & 0xFF) << 24) | ((texto_cifrado_Bytes[1] & 0xFF) << 16) |
+                             ((texto_cifrado_Bytes[2] & 0xFF) << 8) | (texto_cifrado_Bytes[3] & 0xFF);
+        int parte_direita = ((texto_cifrado_Bytes[4] & 0xFF) << 24) | ((texto_cifrado_Bytes[5] & 0xFF) << 16) |
+                            ((texto_cifrado_Bytes[6] & 0xFF) << 8) | (texto_cifrado_Bytes[7] & 0xFF);
+
+        // Descriptografa o bloco com subchaves atualizadas
+        int[] resultado = descriptografarBloco(parte_esquerda, parte_direita, Array_P);
+
+        // Converte resultado de volta para bytes
+        byte[] resultado_bytes = new byte[8];
+        resultado_bytes[0] = (byte) ((resultado[0] >> 24) & 0xFF);
+        resultado_bytes[1] = (byte) ((resultado[0] >> 16) & 0xFF);
+        resultado_bytes[2] = (byte) ((resultado[0] >> 8) & 0xFF);
+        resultado_bytes[3] = (byte) (resultado[0] & 0xFF);
+        resultado_bytes[4] = (byte) ((resultado[1] >> 24) & 0xFF);
+        resultado_bytes[5] = (byte) ((resultado[1] >> 16) & 0xFF);
+        resultado_bytes[6] = (byte) ((resultado[1] >> 8) & 0xFF);
+        resultado_bytes[7] = (byte) (resultado[1] & 0xFF);
+
+        String textoPlanoHex = byteArrayToHexString(resultado_bytes);
+        System.out.printf("Texto descriptografado: %s%n", textoPlanoHex);
+        return textoPlanoHex;
+    }
+
     public static void main(String[] args) {
         String chave = "aabb09182736ccdd";
-        Encriptar("123456abcd132536", chave);
+        String textoPlano = "123456abcd132536";
+        
+        
+        System.out.println("=== TESTE DE CRIPTOGRAFIA ===");
+        String textoCifrado = Encriptar(textoPlano, chave);
+        
+        
+        System.out.println("\n=== TESTE DE DESCRIPTOGRAFIA ===");
+        String textoDescriptografado = Descriptografar(textoCifrado, chave);
+        
+        
+        System.out.println("\n=== VERIFICAÇÃO ===");
+        System.out.printf("Texto original:        %s%n", textoPlano);
+        System.out.printf("Texto descriptografado: %s%n", textoDescriptografado);
+        System.out.printf("Descriptografia correta: %s%n", 
+                         textoPlano.equals(textoDescriptografado) ? "SIM" : "NÃO");
     }
 }
