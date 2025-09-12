@@ -2,6 +2,7 @@ package Criptografia;
 
 public class Util {
 
+    // S-box 0
     public static final String sBox0[] = {
         "d1310ba6", "98dfb5ac", "2ffd72db", "d01adfb7", "b8e1afed", "6a267e96",
         "ba7c9045", "f12c7f99", "24a19947", "b3916cf7", "0801f2e2", "858efc16",
@@ -48,6 +49,7 @@ public class Util {
         "53b02d5d", "a99f8fa1", "08ba4799", "6e85076a"
     };
 
+    // S-box 1
     public static final String sBox1[] = {
         "4b7a70e9", "b5b32944", "db75092e", "c4192623", "ad6ea6b0", "49a7df7d",
         "9cee60b8", "8fedb266", "ecaa8c71", "699a17ff", "5664526c", "c2b19ee1",
@@ -94,6 +96,7 @@ public class Util {
         "153e21e7", "8fb03d4a", "e6e39f2b", "db83adf7"
     };
 
+    // S-box 2
     public static final String sBox2[] = {
         "e93d5a68", "948140f7", "f64c261c", "94692934", "411520f7", "7602d4f7",
         "bcf46b2e", "d4a20068", "d4082471", "3320f46a", "43b7d4b7", "500061af",
@@ -140,6 +143,7 @@ public class Util {
         "d79a3234", "92638212", "670efa8e", "406000e0"
     };
 
+    // S-box 3
     public static final String sBox3[] = {
         "3a39ce37", "d3faf5cf", "abc27737", "5ac52d1b", "5cb0679e", "4fa33742",
         "d3822740", "99bc9bbe", "d5118e9d", "bf0f7315", "d62d1c7e", "c700c47b",
@@ -186,6 +190,7 @@ public class Util {
         "b74e6132", "ce77e25b", "578fdfe3", "3ac372e6"
     };
 
+    // P-array inicial
     public static final String[] Array_P = { 
             "243f6a88", "85a308d3", "13198a2e", "03707344",
             "a4093822", "299f31d0", "082efa98", "ec4e6c89",
@@ -193,4 +198,24 @@ public class Util {
             "c0ac29b7", "c97c50dd", "3f84d5b5", "b5470917",
             "9216d5d9", "8979fb1b" 
     };
+
+    // Converte string normal para string hexadecimal
+    public static String stringParaHex(String texto) {
+        StringBuilder hex = new StringBuilder();
+        for (char c : texto.toCharArray()) {
+            hex.append(String.format("%02X", (int) c));
+        }
+        return hex.toString();
+    }
+
+    // Converte string hexadecimal de volta para string normal
+    public static String hexParaString(String hex) {
+        StringBuilder texto = new StringBuilder();
+        for (int i = 0; i < hex.length(); i += 2) {
+            String parte = hex.substring(i, i + 2);
+            int decimal = Integer.parseInt(parte, 16);
+            texto.append((char) decimal);
+        }
+        return texto.toString();
+    }
 }
