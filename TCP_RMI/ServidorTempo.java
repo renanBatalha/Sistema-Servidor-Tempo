@@ -10,9 +10,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+// criptografia
+import Criptografia.Blowfish;
+import Criptografia.Util;
+
 public class ServidorTempo implements Tempo{
 
     private final List<String> logs = new ArrayList<>();
+    private static final String chave = "minhaChaveSecreta";
+    private static Blowfish criptografia = new Blowfish();
 
     public static void Menu(){
         System.out.println("=== SERVIDOR DE TEMPO ===");
@@ -26,9 +32,16 @@ public class ServidorTempo implements Tempo{
     public String obterTempoAtual(){
         LocalDateTime tempoAtual = LocalDateTime.now();
         String resposta =  tempoAtual.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+
          logs.add("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) 
                         + "] Cliente solicitou hora atual: " + resposta);
-        return resposta;
+        
+        // Convertendo a string para hexadecimal                        
+        resposta = Util.stringParaHex(resposta);    
+        String chave_criptografada = Util.stringParaHex(chave);   
+        
+        String respostaCriptografada = criptografia.Encriptar(resposta, chave_criptografada);
+        return respostaCriptografada;
     }
 
     @Override

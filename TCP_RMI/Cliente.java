@@ -1,5 +1,7 @@
 package TCP_RMI;
 import java.rmi.registry.LocateRegistry;
+import Criptografia.Blowfish;
+import Criptografia.Util;
 import java.rmi.registry.Registry;
 import java.util.Scanner;
 import java.rmi.Naming;
@@ -7,6 +9,7 @@ import java.rmi.Naming;
 public class Cliente {
 
     private static volatile boolean flag = true;
+    private static String chave = "minhaChaveSecreta";
 
     public static void Menu(){
         System.out.println("=== SERVIDOR DE TEMPO ===");
@@ -20,7 +23,12 @@ public class Cliente {
      public static void obterTempoAutomaticamente(int intervalo, Tempo servidor){
         while(flag){
             try{
-                System.out.println("Hora Atual: " + servidor.obterTempoAtual());
+                System.out.println("Hora Atual: ");
+                String chave_hexadecimal = Util.stringParaHex(chave);   
+                String mensagem_descriptografada = Blowfish.Descriptografar(servidor.obterTempoAtual(), chave_hexadecimal);
+                mensagem_descriptografada = Util.hexParaString(mensagem_descriptografada);
+                System.out.println(mensagem_descriptografada);
+                
                 Thread.sleep(intervalo*1000);
             }catch(Exception e){
                 e.printStackTrace();
@@ -43,7 +51,10 @@ public class Cliente {
                     case 1:
                         // funcao para obter hora atual
                         System.out.println("Hora atual: ");
-                        System.out.println(servidor.obterTempoAtual());
+                        String chave_hexadecimal = Util.stringParaHex(chave);   
+                        String mensagem_descriptografada = Blowfish.Descriptografar(servidor.obterTempoAtual(), chave_hexadecimal);
+                        mensagem_descriptografada = Util.hexParaString(mensagem_descriptografada);
+                        System.out.println(mensagem_descriptografada);
                         break;
                     case 2:
                         // funcao para enviar hora automaticamente por intervalo de tempo
