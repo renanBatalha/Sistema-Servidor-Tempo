@@ -2,7 +2,6 @@ package TCP_RMI;
 import java.rmi.registry.LocateRegistry;
 import Criptografia.Blowfish;
 import Criptografia.Util;
-import Criptografia.HashMD5;
 import java.rmi.registry.Registry;
 import java.util.Scanner;
 import java.rmi.Naming;
@@ -25,23 +24,11 @@ public class Cliente {
         while(flag){
             try{
                 System.out.println("Hora Atual: ");
-                String respostaComHash = servidor.obterTempoAtualComHash();
-                String[] partes = respostaComHash.split(":");
-                String mensagemCriptografada = partes[0];
-                String hashRecebido = partes[1];
-
-                // Verificar a integridade da mensagem
-                String hashCalculado = HashMD5.gerarHashMD5(mensagemCriptografada);
-                if (hashCalculado.equals(hashRecebido)) {
-                    System.out.println("Integridade da mensagem verificada: OK");
-                } else {
-                    System.out.println("Integridade da mensagem comprometida: HASH NÃO CORRESPONDE!");
-                }
-
                 String chave_hexadecimal = Util.stringParaHex(chave);   
-                String mensagem_descriptografada = Blowfish.Descriptografar(mensagemCriptografada, chave_hexadecimal);
+                String mensagem_descriptografada = Blowfish.Descriptografar(servidor.obterTempoAtual(), chave_hexadecimal);
                 mensagem_descriptografada = Util.hexParaString(mensagem_descriptografada);
                 System.out.println(mensagem_descriptografada);
+                
                 Thread.sleep(intervalo*1000);
             }catch(Exception e){
                 e.printStackTrace();
@@ -64,21 +51,8 @@ public class Cliente {
                     case 1:
                         // funcao para obter hora atual
                         System.out.println("Hora atual: ");
-                        String respostaComHash = servidor.obterTempoAtualComHash();
-                        String[] partes = respostaComHash.split(":");
-                        String mensagemCriptografada = partes[0];
-                        String hashRecebido = partes[1];
-
-                        // Verificar a integridade da mensagem
-                        String hashCalculado = HashMD5.gerarHashMD5(mensagemCriptografada);
-                        if (hashCalculado.equals(hashRecebido)) {
-                            System.out.println("Integridade da mensagem verificada: OK");
-                        } else {
-                            System.out.println("Integridade da mensagem comprometida: HASH NÃO CORRESPONDE!");
-                        }
-
                         String chave_hexadecimal = Util.stringParaHex(chave);   
-                        String mensagem_descriptografada = Blowfish.Descriptografar(mensagemCriptografada, chave_hexadecimal);
+                        String mensagem_descriptografada = Blowfish.Descriptografar(servidor.obterTempoAtual(), chave_hexadecimal);
                         mensagem_descriptografada = Util.hexParaString(mensagem_descriptografada);
                         System.out.println(mensagem_descriptografada);
                         break;
