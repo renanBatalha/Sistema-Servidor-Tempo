@@ -265,27 +265,4 @@ public class Blowfish {
         
         return Util.byteArrayToHexString(dadosSemPadding);
     }
-
-    public static void main(String[] args) {
-        String chave = "aabb09182736ccdd";
-        String textoPlano = "123456abcd132536";
-        
-        // Teste com string longa como data/hora
-        System.out.println("\n=== TESTE COM STRING LONGA ===");
-        String dataHora = "11/09/2025 14:30:45";
-        String dataHoraHex = Util.stringParaHex(dataHora);
-        System.out.printf("Data/Hora original: %s%n", dataHora);
-        System.out.printf("Em hex: %s%n", dataHoraHex);
-        
-        String cifrado = Encriptar(dataHoraHex, chave);
-        System.out.printf("Cifrado: %s%n", cifrado);
-        
-        String decifrado = Descriptografar(cifrado, chave);
-        String dataHoraFinal = Util.hexParaString(decifrado);
-        
-        System.out.printf("Descriptografado (hex): %s%n", decifrado);
-        System.out.printf("Data/Hora final: %s%n", dataHoraFinal);
-        System.out.printf("String completa preservada: %s%n", 
-                         dataHora.equals(dataHoraFinal) ? "SIM" : "NÃO");
-    }
 }
