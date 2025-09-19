@@ -1,6 +1,7 @@
 package Criptografia;
 
 public class Util {
+    private static final int TAMANHO_BLOCO = 8;
 
     // S-box 0
     public static final String sBox0[] = {
@@ -218,4 +219,71 @@ public class Util {
         }
         return texto.toString();
     }
+
+    public static String byteArrayToHexString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
+
+    public static String operacaoXOR(String hex1, int int2){
+        int int1 = Integer.parseUnsignedInt(hex1, 16);
+        int resultado = int1 ^ int2;
+        return String.format("%08x", resultado);
+    }
+
+    
+    public static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                                + Character.digit(s.charAt(i+1), 16));
+        }
+        return data;
+    }
+
+    public static int operacaoXORComInteiros(int num1, int num2){
+        return num1 ^ num2;
+    }
+
+    // Aplica padding PKCS7 aos dados
+    public static byte[] aplicarPadding(byte[] dados) {
+        int padding = TAMANHO_BLOCO - (dados.length % TAMANHO_BLOCO);
+        if (padding == TAMANHO_BLOCO) padding = TAMANHO_BLOCO; // Sempre aplica padding
+        
+        byte[] dadosComPadding = new byte[dados.length + padding];
+        System.arraycopy(dados, 0, dadosComPadding, 0, dados.length);
+        
+        // Preenche com o valor do padding
+        for (int i = dados.length; i < dadosComPadding.length; i++) {
+            dadosComPadding[i] = (byte) padding;
+        }
+        
+        return dadosComPadding;
+    }
+
+    // Remove padding PKCS7 dos dados
+    public static byte[] removerPadding(byte[] dados) {
+        if (dados.length == 0) return dados;
+        
+        int padding = dados[dados.length - 1] & 0xFF;
+        if (padding <= 0 || padding > TAMANHO_BLOCO) {
+            return dados; // Padding inválido, retorna dados originais
+        }
+        
+        // Verifica se todos os bytes de padding são iguais
+        for (int i = dados.length - padding; i < dados.length; i++) {
+            if ((dados[i] & 0xFF) != padding) {
+                return dados; // Padding inválido
+            }
+        }
+        
+        byte[] dadosSemPadding = new byte[dados.length - padding];
+        System.arraycopy(dados, 0, dadosSemPadding, 0, dadosSemPadding.length);
+        return dadosSemPadding;
+    }
+
 }

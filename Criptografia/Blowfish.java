@@ -12,34 +12,6 @@ public class Blowfish {
     public static String[] SBox2 = Util.sBox2.clone();
     public static String[] SBox3 = Util.sBox3.clone();
 
-    public static String operacaoXOR(String hex1, int int2){
-        int int1 = Integer.parseUnsignedInt(hex1, 16);
-        int resultado = int1 ^ int2;
-        return String.format("%08x", resultado);
-    }
-
-    public static String byteArrayToHexString(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(String.format("%02x", b));
-        }
-        return sb.toString();
-    }
-
-    public static byte[] hexStringToByteArray(String s) {
-        int len = s.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-                                + Character.digit(s.charAt(i+1), 16));
-        }
-        return data;
-    }
-
-    public static int operacaoXORComInteiros(int num1, int num2){
-        return num1 ^ num2;
-    }
-
     public static int funcaoF(int parte_esquerda) {
         byte[] bytes = new byte[4];
         bytes[0] = (byte) ((parte_esquerda >> 24) & 0xFF);
@@ -68,8 +40,8 @@ public class Blowfish {
     public static int[] cifrarBloco(int xl, int xr, String[] Array_P) {
         for (int i = 0; i < Rodadas; i++) {
             int valorP = Integer.parseUnsignedInt(Array_P[i], 16);
-            xl = operacaoXORComInteiros(xl, valorP);
-            xr = operacaoXORComInteiros(funcaoF(xl), xr);
+            xl = Util.operacaoXORComInteiros(xl, valorP);
+            xr = Util.operacaoXORComInteiros(funcaoF(xl), xr);
 
             // Swap
             int aux = xl;
@@ -82,50 +54,18 @@ public class Blowfish {
 
         // Verificação de segurança para evitar IndexOutOfBounds
         if (Array_P.length > Rodadas) {
-            xr = operacaoXORComInteiros(xr, Integer.parseUnsignedInt(Array_P[Rodadas], 16));
+            xr = Util.operacaoXORComInteiros(xr, Integer.parseUnsignedInt(Array_P[Rodadas], 16));
         }
         if (Array_P.length > Rodadas + 1) {
-            xl = operacaoXORComInteiros(xl, Integer.parseUnsignedInt(Array_P[Rodadas + 1], 16));
+            xl = Util.operacaoXORComInteiros(xl, Integer.parseUnsignedInt(Array_P[Rodadas + 1], 16));
         } else if (Array_P.length > Rodadas) {
-            xl = operacaoXORComInteiros(xl, Integer.parseUnsignedInt(Array_P[Rodadas], 16));
+            xl = Util.operacaoXORComInteiros(xl, Integer.parseUnsignedInt(Array_P[Rodadas], 16));
         }
 
         return new int[] {xl, xr};
     }
 
-    // Descriptografa um único bloco 64 bits - usa subchaves em ordem reversa
-    public static int[] descriptografarBloco(int xl, int xr, String[] Array_P) {
-        // Verificação de segurança para evitar IndexOutOfBounds
-        if (Array_P.length > Rodadas + 1) {
-            xl = operacaoXORComInteiros(xl, Integer.parseUnsignedInt(Array_P[Rodadas + 1], 16));
-        } else if (Array_P.length > Rodadas) {
-            xl = operacaoXORComInteiros(xl, Integer.parseUnsignedInt(Array_P[Rodadas], 16));
-        }
-        
-        if (Array_P.length > Rodadas) {
-            xr = operacaoXORComInteiros(xr, Integer.parseUnsignedInt(Array_P[Rodadas], 16));
-        }
-
-        // Swap inicial
-        int aux = xl;
-        xl = xr;
-        xr = aux;
-
-        // Aplica rodadas em ordem reversa (de 15 até 0)
-        for (int i = Rodadas - 1; i >= 0; i--) {
-            // Swap
-            aux = xl;
-            xl = xr;
-            xr = aux;
-
-            xr = operacaoXORComInteiros(funcaoF(xl), xr);
-            int valorP = Integer.parseUnsignedInt(Array_P[i], 16);
-            xl = operacaoXORComInteiros(xl, valorP);
-        }
-
-        return new int[] {xl, xr};
-    }
-
+    
     // Atualiza os arrays P e S progressivamente aplicando cifragem iterativa do bloco zero
     public static void keySchedule(String[] Array_P, String[] s0, String[] s1, String[] s2, String[] s3, byte[] chaveBytes) {
         // 1. XOR do array P com bytes da chave
@@ -136,19 +76,19 @@ public class Blowfish {
                 int b = chaveBytes[(i * 4 + j) % chaveBytes.length] & 0xFF;
                 chave32 = (chave32 << 8) | b;
             }
-            Array_P[i] = operacaoXOR(Array_P[i], chave32);
+            Array_P[i] = Util.operacaoXOR(Array_P[i], chave32);
         }
-
+        
         // 2. Cifrar iterativamente para atualizar P e S
         int xl = 0x00000000;
         int xr = 0x00000000;
-
+        
         // Para facilitar uso das S-boxes mutáveis no funcaoF, atribui-las temporariamente
         SBox0 = s0;
         SBox1 = s1;
         SBox2 = s2;
         SBox3 = s3;
-
+        
         for (int i = 0; i < maxIndex && i + 1 < Array_P.length; i += 2) {
             int[] res = cifrarBloco(xl, xr, Array_P);
             xl = res[0];
@@ -166,7 +106,7 @@ public class Blowfish {
             s0[i] = String.format("%08x", xl);
             s0[i + 1] = String.format("%08x", xr);
         }
-
+        
         for (int i = 0; i < 256; i += 2) {
             int[] res = cifrarBloco(xl, xr, Array_P);
             xl = res[0];
@@ -182,7 +122,7 @@ public class Blowfish {
             s2[i] = String.format("%08x", xl);
             s2[i + 1] = String.format("%08x", xr);
         }
-
+        
         for (int i = 0; i < 256; i += 2) {
             int[] res = cifrarBloco(xl, xr, Array_P);
             xl = res[0];
@@ -190,7 +130,7 @@ public class Blowfish {
             s3[i] = String.format("%08x", xl);
             s3[i + 1] = String.format("%08x", xr);
         }
-
+        
         // Reatribuir para S-boxes atualizadas após modificação
         SBox0 = s0;
         SBox1 = s1;
@@ -198,43 +138,8 @@ public class Blowfish {
         SBox3 = s3;
     }
 
-    // Aplica padding PKCS7 aos dados
-    private static byte[] aplicarPadding(byte[] dados) {
-        int padding = TAMANHO_BLOCO - (dados.length % TAMANHO_BLOCO);
-        if (padding == TAMANHO_BLOCO) padding = TAMANHO_BLOCO; // Sempre aplica padding
-        
-        byte[] dadosComPadding = new byte[dados.length + padding];
-        System.arraycopy(dados, 0, dadosComPadding, 0, dados.length);
-        
-        // Preenche com o valor do padding
-        for (int i = dados.length; i < dadosComPadding.length; i++) {
-            dadosComPadding[i] = (byte) padding;
-        }
-        
-        return dadosComPadding;
-    }
-
-    // Remove padding PKCS7 dos dados
-    private static byte[] removerPadding(byte[] dados) {
-        if (dados.length == 0) return dados;
-        
-        int padding = dados[dados.length - 1] & 0xFF;
-        if (padding <= 0 || padding > TAMANHO_BLOCO) {
-            return dados; // Padding inválido, retorna dados originais
-        }
-        
-        // Verifica se todos os bytes de padding são iguais
-        for (int i = dados.length - padding; i < dados.length; i++) {
-            if ((dados[i] & 0xFF) != padding) {
-                return dados; // Padding inválido
-            }
-        }
-        
-        byte[] dadosSemPadding = new byte[dados.length - padding];
-        System.arraycopy(dados, 0, dadosSemPadding, 0, dadosSemPadding.length);
-        return dadosSemPadding;
-    }
-
+    
+    
     public static String Encriptar(String texto_plano, String chave) {
         // Clona arrays para evitar modificar os originais
         String[] Array_P = Util.Array_P.clone();
@@ -242,36 +147,69 @@ public class Blowfish {
         String[] s1 = Util.sBox1.clone();
         String[] s2 = Util.sBox2.clone();
         String[] s3 = Util.sBox3.clone();
-
-        byte[] chaveBytes = hexStringToByteArray(chave);
-
+        
+        byte[] chaveBytes = Util.hexStringToByteArray(chave);
+        
         // Executa o key schedule para inicializar P e S com a chave
         keySchedule(Array_P, s0, s1, s2, s3, chaveBytes);
-
+        
         // Prepara dados com padding
-        byte[] texto_plano_Bytes = hexStringToByteArray(texto_plano);
-        byte[] dadosComPadding = aplicarPadding(texto_plano_Bytes);
-
+        byte[] texto_plano_Bytes = Util.hexStringToByteArray(texto_plano);
+        byte[] dadosComPadding = Util.aplicarPadding(texto_plano_Bytes);
+        
         StringBuilder resultado = new StringBuilder();
-
+        
         // Processa cada bloco de 64 bits
         for (int offset = 0; offset < dadosComPadding.length; offset += TAMANHO_BLOCO) {
             int parte_esquerda = ((dadosComPadding[offset] & 0xFF) << 24) | 
-                                ((dadosComPadding[offset + 1] & 0xFF) << 16) |
-                                ((dadosComPadding[offset + 2] & 0xFF) << 8) | 
-                                (dadosComPadding[offset + 3] & 0xFF);
+            ((dadosComPadding[offset + 1] & 0xFF) << 16) |
+            ((dadosComPadding[offset + 2] & 0xFF) << 8) | 
+            (dadosComPadding[offset + 3] & 0xFF);
             
             int parte_direita = ((dadosComPadding[offset + 4] & 0xFF) << 24) | 
-                               ((dadosComPadding[offset + 5] & 0xFF) << 16) |
-                               ((dadosComPadding[offset + 6] & 0xFF) << 8) | 
+            ((dadosComPadding[offset + 5] & 0xFF) << 16) |
+            ((dadosComPadding[offset + 6] & 0xFF) << 8) | 
                                (dadosComPadding[offset + 7] & 0xFF);
-
+                               
             // Cifra o bloco
             int[] blocoResultado = cifrarBloco(parte_esquerda, parte_direita, Array_P);
             resultado.append(String.format("%08x%08x", blocoResultado[0], blocoResultado[1]));
         }
-
+        
         return resultado.toString();
+    }
+    
+    // Descriptografa um único bloco 64 bits - usa subchaves em ordem reversa
+    public static int[] descriptografarBloco(int xl, int xr, String[] Array_P) {
+        // Verificação de segurança para evitar IndexOutOfBounds
+        if (Array_P.length > Rodadas + 1) {
+            xl = Util.operacaoXORComInteiros(xl, Integer.parseUnsignedInt(Array_P[Rodadas + 1], 16));
+        } else if (Array_P.length > Rodadas) {
+            xl = Util.operacaoXORComInteiros(xl, Integer.parseUnsignedInt(Array_P[Rodadas], 16));
+        }
+        
+        if (Array_P.length > Rodadas) {
+            xr = Util.operacaoXORComInteiros(xr, Integer.parseUnsignedInt(Array_P[Rodadas], 16));
+        }
+
+        // Swap inicial
+        int aux = xl;
+        xl = xr;
+        xr = aux;
+
+        // Aplica rodadas em ordem reversa (de 15 até 0)
+        for (int i = Rodadas - 1; i >= 0; i--) {
+            // Swap
+            aux = xl;
+            xl = xr;
+            xr = aux;
+
+            xr = Util.operacaoXORComInteiros(funcaoF(xl), xr);
+            int valorP = Integer.parseUnsignedInt(Array_P[i], 16);
+            xl = Util.operacaoXORComInteiros(xl, valorP);
+        }
+
+        return new int[] {xl, xr};
     }
 
     public static String Descriptografar(String texto_cifrado, String chave) {
@@ -282,13 +220,13 @@ public class Blowfish {
         String[] s2 = Util.sBox2.clone();
         String[] s3 = Util.sBox3.clone();
 
-        byte[] chaveBytes = hexStringToByteArray(chave);
+        byte[] chaveBytes = Util.hexStringToByteArray(chave);
 
         // Executa o key schedule para inicializar P e S com a chave
         keySchedule(Array_P, s0, s1, s2, s3, chaveBytes);
 
         // Converte texto cifrado para bytes
-        byte[] texto_cifrado_Bytes = hexStringToByteArray(texto_cifrado);
+        byte[] texto_cifrado_Bytes = Util.hexStringToByteArray(texto_cifrado);
         
         if (texto_cifrado_Bytes.length % TAMANHO_BLOCO != 0) {
             throw new IllegalArgumentException("Texto cifrado deve ter tamanho múltiplo de 8 bytes");
@@ -323,9 +261,9 @@ public class Blowfish {
         }
 
         // Remove o padding
-        byte[] dadosSemPadding = removerPadding(resultado_bytes);
+        byte[] dadosSemPadding = Util.removerPadding(resultado_bytes);
         
-        return byteArrayToHexString(dadosSemPadding);
+        return Util.byteArrayToHexString(dadosSemPadding);
     }
 
     public static void main(String[] args) {
