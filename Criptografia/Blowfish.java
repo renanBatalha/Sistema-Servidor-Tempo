@@ -12,23 +12,29 @@ public class Blowfish {
     public static String[] SBox2 = Util.sBox2.clone();
     public static String[] SBox3 = Util.sBox3.clone();
 
+    // Função F que utiliza as S-boxes
     public static int funcaoF(int parte_esquerda) {
         byte[] bytes = new byte[4];
+
+        // Divide a parte_esquerda em 8 bits
         bytes[0] = (byte) ((parte_esquerda >> 24) & 0xFF);
         bytes[1] = (byte) ((parte_esquerda >> 16) & 0xFF);
         bytes[2] = (byte) ((parte_esquerda >> 8) & 0xFF);
         bytes[3] = (byte) (parte_esquerda & 0xFF);
 
+        // Atribui os valores de indices para as S-boxes
         int a = bytes[0] & 0xFF;
         int b = bytes[1] & 0xFF;
         int c = bytes[2] & 0xFF;
         int d = bytes[3] & 0xFF;
 
+        // Busca os valores nas S-boxes e realiza as operações
         int v0 = Integer.parseUnsignedInt(SBox0[a], 16);
         int v1 = Integer.parseUnsignedInt(SBox1[b], 16);
         int v2 = Integer.parseUnsignedInt(SBox2[c], 16);
         int v3 = Integer.parseUnsignedInt(SBox3[d], 16);
 
+        // Realiza as operações conforme a definição da função F
         long tmp = ((long)v0 + (long)v1) & 0xFFFFFFFFL;
         tmp = (tmp ^ (long)v2) & 0xFFFFFFFFL;
         tmp = (tmp + (long)v3) & 0xFFFFFFFFL;
@@ -38,6 +44,8 @@ public class Blowfish {
 
     // Cifra um único bloco 64 bits com a rede Feistel usando os arrays mutáveis P e S atuais
     public static int[] cifrarBloco(int xl, int xr, String[] Array_P) {
+
+        // 1) Rodadas de Feistel
         for (int i = 0; i < Rodadas; i++) {
             int valorP = Integer.parseUnsignedInt(Array_P[i], 16);
             xl = Util.operacaoXORComInteiros(xl, valorP);
@@ -48,6 +56,8 @@ public class Blowfish {
             xl = xr;
             xr = aux;
         }
+
+        // 2) Swap final
         int aux = xl;
         xl = xr;
         xr = aux;
@@ -68,6 +78,7 @@ public class Blowfish {
     
     // Atualiza os arrays P e S progressivamente aplicando cifragem iterativa do bloco zero
     public static void keySchedule(String[] Array_P, String[] s0, String[] s1, String[] s2, String[] s3, byte[] chaveBytes) {
+        
         // 1. XOR do array P com bytes da chave
         int maxIndex = Math.min(numero_de_subchaves, Array_P.length);
         for (int i = 0; i < maxIndex; i++) {
